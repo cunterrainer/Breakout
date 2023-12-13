@@ -82,19 +82,14 @@ int main()
 
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
-    struct Ball ball = { .center = { 400, 400 }, .radius = 15.f};
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
+    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 15 }, .radius = 15.f};
 
     while (!WindowShouldClose())
     {
         const float dt = GetFrameTime();
         BeginDrawing();
         ClearBackground(background_color);
-        
-
-        Vector2 v = GetMousePosition();
-        ball.center = v;
-
 
         ball_bricks_collision(ball, bricks);
 
