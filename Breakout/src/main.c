@@ -23,6 +23,13 @@ struct Brick
 };
 
 
+struct Ball
+{
+    Vector2 center;
+    float radius;
+};
+
+
 void generate_bricks(struct Brick* bricks)
 {
     const float brick_width = WINDOW_WIDTH / (float)BRICKS_HOR - BRICK_PADDING*2;
@@ -51,6 +58,21 @@ void generate_bricks(struct Brick* bricks)
 }
 
 
+void ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
+{
+    for (size_t i = 0; i < NUM_BRICKS; ++i)
+    {
+        if (bricks[i].rec.x > 0 && CheckCollisionCircleRec(ball.center, ball.radius, bricks[i].rec))
+        {
+            bricks[i].rec.x = -20;
+            bricks[i].rec.y = -20;
+            bricks[i].rec.width = 0;
+            bricks[i].rec.height = 0;
+        }
+    }
+}
+
+
 int main()
 {
     const Color background_color = { .r = 10, .g = 10, .b = 10, .a = 255 };
@@ -60,6 +82,7 @@ int main()
 
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
+    struct Ball ball = { .center = { 400, 400 }, .radius = 15.f};
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
 
     while (!WindowShouldClose())
@@ -69,12 +92,19 @@ int main()
         ClearBackground(background_color);
         
 
+        Vector2 v = GetMousePosition();
+        ball.center = v;
+
+
+        ball_bricks_collision(ball, bricks);
+
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
             paddle.x = MAX(0, paddle.x - 750 * dt);
         if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
             paddle.x = MIN(paddle.x + 750 * dt, WINDOW_WIDTH - paddle.width);
 
         DrawRectangleRec(paddle, RED);
+        DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
 
         for (size_t i = 0; i < NUM_BRICKS; ++i)
             DrawRectangleRec(bricks[i].rec, bricks[i].col);
