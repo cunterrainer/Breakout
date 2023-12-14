@@ -48,7 +48,8 @@ enum State
     Game,
     Break,
     Failed,
-    Success
+    Success,
+    Reset
 };
 
 
@@ -181,9 +182,12 @@ struct GameObjects game_objects_init()
 }
 
 
-void on_game_update(struct GameObjects* game_objects, float dt)
+enum State on_game_update(struct GameObjects* game_objects, float dt)
 {
     static float prev_mouse_pos = 0.f;
+
+    if (IsKeyDown(KEY_ESCAPE))
+        return Break;
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
         game_objects->paddle.x = MAX(0, game_objects->paddle.x - 800 * dt);
@@ -203,6 +207,7 @@ void on_game_update(struct GameObjects* game_objects, float dt)
 
     ball_move(&game_objects->ball, game_objects->paddle, dt);
     game_objects->score += ball_bricks_collision(&game_objects->ball, game_objects->bricks);
+    return Game;
 }
 
 
@@ -226,22 +231,31 @@ void on_game_render(const struct GameObjects* game_objects)
 }
 
 
-enum State on_menu_update()
-{
-    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))
-        return Game;
-    return Menu;
-}
-
-
-void on_menu_render(const char* text, enum State game_state)
+enum State on_menu_update(const char* text, enum State game_state)
 {
     const int font_size = 90;
-    game_state = 1;
     const int text_length = MeasureText(text, font_size);
     const int x_pos = (WINDOW_WIDTH - text_length) / 2;
     const int y_pos = (WINDOW_HEIGHT - font_size) / 2;
-    DrawText(text, x_pos, y_pos, font_size, GOLD);
+
+    switch (game_state)
+    {
+    case Menu:
+    case Break:
+        DrawText(text, x_pos, y_pos, font_size, DARKGRAY);
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_SPACE))
+            return Game;
+        break;
+    case Success:
+        DrawText(text, x_pos, y_pos, font_size, GOLD);
+        break;
+    case Failed:
+        DrawText(text, x_pos, y_pos, font_size, RED);
+        break;
+    default:
+        break;
+    }
+    return game_state;
 }
 
 
@@ -262,16 +276,17 @@ int main()
         switch (game_state)
         {
         case Menu:
-            game_state = on_menu_update();
             on_game_render(&game_objects);
-            on_menu_render("Press A|D to start", Menu);
+            game_state = on_menu_update("Press A|D to start", Menu); // to render the menu on top of the game not vice versa
             break;
         case Game:
-            on_game_update(&game_objects, GetFrameTime());
+            game_state = on_game_update(&game_objects, GetFrameTime());
             on_game_render(&game_objects);
             break;
         case Break:
-                break;
+            on_game_render(&game_objects);
+            game_state = on_menu_update("Paused", Break);
+            break;
         case Success:
         case Failed:
             break;
