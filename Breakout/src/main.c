@@ -171,9 +171,9 @@ int main()
         score += ball_bricks_collision(&ball, bricks);
 
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
-            paddle.x = MAX(0, paddle.x - 750 * dt);
+            paddle.x = MAX(0, paddle.x - 800 * dt);
         if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
-            paddle.x = MIN(paddle.x + 750 * dt, WINDOW_WIDTH - paddle.width);
+            paddle.x = MIN(paddle.x + 800 * dt, WINDOW_WIDTH - paddle.width);
 
         const float mouse_pos = GetMousePosition().x;
         if (prev_mouse_pos != mouse_pos)
