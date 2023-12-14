@@ -126,11 +126,11 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if (ball->center.x >= WINDOW_WIDTH && ball->direction.x > 0 || ball->center.x <= 0 && ball->direction.x < 0)
+    if (ball->center.x + ball->radius >= WINDOW_WIDTH && ball->direction.x > 0 || ball->center.x - ball->radius <= 0 && ball->direction.x < 0)
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0)
+    else if (ball->center.y + ball->radius >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y - ball->radius <= 0 && ball->direction.y < 0)
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
