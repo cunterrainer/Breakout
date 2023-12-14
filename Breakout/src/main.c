@@ -91,6 +91,21 @@ void generate_bricks(struct Brick* bricks, int window_width, int paddle_height)
 }
 
 
+void play_sound(Sound sound)
+{
+    if (IsSoundPlaying(sound))
+    {
+        StopSound(sound);
+        PlaySound(sound);
+    }
+    else
+    {
+        PlaySound(sound);
+    }
+}
+
+
+
 Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direction)
 {
     const float dot_product = current_direction.x * normal.x + current_direction.y * normal.y;
@@ -123,7 +138,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_height, float dt)
+int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_height, float dt, Sound hit_sound)
 {
     const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -153,24 +168,11 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
         {
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
+        play_sound(hit_sound);
     }
     else if (ball->center.y + ball->radius >= window_height)
         return 0;
     return 1;
-}
-
-
-void play_sound(Sound sound)
-{
-    if (IsSoundPlaying(sound))
-    {
-        StopSound(sound);
-        PlaySound(sound);
-    }
-    else
-    {
-        PlaySound(sound);
-    }
 }
 
 
@@ -208,7 +210,7 @@ enum State on_game_update(struct Application* app, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt, app->sound_hit_paddle))
         return Failed;
 
     const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
@@ -331,6 +333,7 @@ int main()
     
     InitAudioDevice();
     app.sound_hit_brick = LoadSound("data/hit.wav");
+    app.sound_hit_paddle = LoadSound("data/hit_paddle.wav");
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
@@ -378,6 +381,7 @@ int main()
         EndDrawing();
     }
     UnloadSound(app.sound_hit_brick);
+    UnloadSound(app.sound_hit_paddle);
     CloseAudioDevice();
     TerminateWindow();
 }
