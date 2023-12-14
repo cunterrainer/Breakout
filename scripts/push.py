@@ -11,4 +11,4 @@ if len(sys.argv) != 2:
 Exec("git add .")
 Exec("git add -u")
 Exec("git commit -m \"" + sys.argv[1] + "\"")
-Exec("git push origin main")
+Exec("git push origin resize")

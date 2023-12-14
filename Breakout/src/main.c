@@ -238,6 +238,32 @@ void on_game_render(const struct GameObjects* game_objects)
 }
 
 
+void on_game_resize(struct GameObjects* game_objects, float width, float height)
+{
+    const float brick_width = width / (float)BRICKS_HOR - BRICK_PADDING * 2;
+    const float brick_height = height / (WINDOW_HEIGHT / (float)PADDLE_HEIGHT);
+
+    float current_x = BRICK_PADDING;
+    float current_y = 60;
+    for (size_t i = 0; i < NUM_BRICKS; ++i)
+    {
+        if (game_objects->bricks[i].rec.width == 0)
+            continue;
+        game_objects->bricks[i].rec.x = current_x;
+        game_objects->bricks[i].rec.y = current_y;
+        game_objects->bricks[i].rec.width = brick_width;
+        game_objects->bricks[i].rec.height = brick_height;
+        current_x += brick_width + BRICK_PADDING * 2;
+
+        if ((i + 1) % BRICKS_HOR == 0)
+        {
+            current_x = BRICK_PADDING;
+            current_y += brick_height + 5;
+        }
+    }
+}
+
+
 enum State on_menu_update(const char* text, enum State game_state)
 {
     const int font_size = 90;
@@ -274,6 +300,7 @@ enum State on_menu_update(const char* text, enum State game_state)
 int main()
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
 
     enum State game_state = Menu;
@@ -283,6 +310,11 @@ int main()
     {
         BeginDrawing();
         ClearBackground((Color) { 10, 10, 10, 255 });
+
+        if (IsWindowResized())
+        {
+            on_game_resize(&game_objects, (float)GetScreenWidth(), (float)GetScreenHeight());
+        }
 
         switch (game_state)
         {
