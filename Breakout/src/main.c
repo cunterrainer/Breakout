@@ -2,8 +2,12 @@
 
 #include "raylib.h"
 
-#include "core.h"
 #include "winmain.h"
+#include "sound_hit_wav.h"
+#include "sound_start_wav.h"
+#include "sound_game_win_wav.h"
+#include "sound_game_fail_wav.h"
+#include "sound_hit_paddle_wav.h"
 
 #define BRICKS_HOR    10 // num of horizontal bricks
 #define BRICKS_VER    7  // num of vertical bricks
@@ -12,6 +16,7 @@
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(*a))
 
 
 enum State
@@ -332,6 +337,28 @@ enum State on_menu_update(const struct Application* app, const char* text)
 }
 
 
+void app_load_audio(struct Application* app)
+{
+    Wave w1 = LoadWaveFromMemory(".wav", sg_Hit_sound,        ARRAY_SIZE(sg_Hit_sound));
+    Wave w2 = LoadWaveFromMemory(".wav", sg_Hit_paddle_sound, ARRAY_SIZE(sg_Hit_paddle_sound));
+    Wave w3 = LoadWaveFromMemory(".wav", sg_Start_sound,      ARRAY_SIZE(sg_Start_sound));
+    Wave w4 = LoadWaveFromMemory(".wav", sg_Game_faile_sound, ARRAY_SIZE(sg_Game_faile_sound));
+    Wave w5 = LoadWaveFromMemory(".wav", sg_Game_win_sound,   ARRAY_SIZE(sg_Game_win_sound));
+
+    app->sound_hit_brick  = LoadSoundFromWave(w1);
+    app->sound_hit_paddle = LoadSoundFromWave(w2);
+    app->sound_start      = LoadSoundFromWave(w3);
+    app->sound_failed     = LoadSoundFromWave(w4);
+    app->sound_success    = LoadSoundFromWave(w5);
+
+    UnloadWave(w1);
+    UnloadWave(w2);
+    UnloadWave(w3);
+    UnloadWave(w4);
+    UnloadWave(w5);
+}
+
+
 int main()
 {
     struct Application app;
@@ -342,11 +369,7 @@ int main()
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
     
     InitAudioDevice();
-    app.sound_hit_brick = LoadSound("data/hit.wav");
-    app.sound_hit_paddle = LoadSound("data/hit_paddle.wav");
-    app.sound_start = LoadSound("data/start.wav");
-    app.sound_failed = LoadSound("data/game_fail.wav");
-    app.sound_success = LoadSound("data/game_win.wav");
+    app_load_audio(&app);
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
