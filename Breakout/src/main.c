@@ -207,6 +207,8 @@ enum State on_game_update(struct GameObjects* game_objects, float dt)
 
     ball_move(&game_objects->ball, game_objects->paddle, dt);
     game_objects->score += ball_bricks_collision(&game_objects->ball, game_objects->bricks);
+    if (game_objects->score == NUM_BRICKS)
+        return Success;
     return Game;
 }
 
@@ -245,7 +247,9 @@ enum State on_menu_update(const char* text, enum State game_state)
         DrawText(text, x_pos, y_pos, font_size, DARKGRAY);
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_SPACE))
             return Game;
-        break;
+        if (IsKeyPressed(KEY_R))
+            return Reset;
+        return game_state;
     case Success:
         DrawText(text, x_pos, y_pos, font_size, GOLD);
         break;
@@ -255,6 +259,9 @@ enum State on_menu_update(const char* text, enum State game_state)
     default:
         break;
     }
+
+    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE))
+        return Reset;
     return game_state;
 }
 
@@ -288,7 +295,16 @@ int main()
             game_state = on_menu_update("Paused", Break);
             break;
         case Success:
+            on_game_render(&game_objects);
+            game_state = on_menu_update("You won!", Success);
+            break;
         case Failed:
+            on_game_render(&game_objects);
+            game_state = on_menu_update("You lost!", Failed);
+            break;
+        case Reset:
+            game_objects = game_objects_init();
+            game_state = Menu;
             break;
         }
 
