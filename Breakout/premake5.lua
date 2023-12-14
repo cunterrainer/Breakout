@@ -8,6 +8,7 @@ project "Breakout"
         warnings "High" -- High
         externalwarnings "Default" -- Default
         buildoptions { "/sdl" }
+        disablewarnings "4244" -- float to int without cast
 
     filter { "toolset:gcc* or toolset:clang*" }
         enablewarnings {
