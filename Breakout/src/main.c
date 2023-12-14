@@ -60,6 +60,7 @@ struct Application
     Sound sound_hit_paddle;
     Sound sound_failed;
     Sound sound_success;
+    Sound sound_start;
 };
 
 
@@ -302,7 +303,10 @@ enum State on_menu_update(const struct Application* app, const char* text)
     case Break:
         DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
+        {
+            play_sound(app->sound_start);
             return Game;
+        }
         if (IsKeyPressed(KEY_R))
             return Reset;
         return app->state;
@@ -334,6 +338,7 @@ int main()
     InitAudioDevice();
     app.sound_hit_brick = LoadSound("data/hit.wav");
     app.sound_hit_paddle = LoadSound("data/hit_paddle.wav");
+    app.sound_start = LoadSound("data/start.wav");
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
@@ -380,6 +385,7 @@ int main()
 
         EndDrawing();
     }
+    UnloadSound(app.sound_start);
     UnloadSound(app.sound_hit_brick);
     UnloadSound(app.sound_hit_paddle);
     CloseAudioDevice();
