@@ -250,7 +250,7 @@ enum State on_menu_update(const char* text, enum State game_state)
     case Menu:
     case Break:
         DrawText(text, x_pos, y_pos, font_size, DARKGRAY);
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_SPACE))
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
             return Game;
         if (IsKeyPressed(KEY_R))
             return Reset;
