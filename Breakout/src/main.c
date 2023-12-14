@@ -137,7 +137,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-void ball_move(struct Ball* ball, Rectangle paddle, float dt)
+int ball_move(struct Ball* ball, Rectangle paddle, float dt)
 {
     const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -150,7 +150,7 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y + ball->radius >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y - ball->radius <= 0 && ball->direction.y < 0)
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0)
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
@@ -168,6 +168,9 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
     }
+    else if (ball->center.y + ball->radius >= WINDOW_HEIGHT)
+        return 0;
+    return 1;
 }
 
 
@@ -205,7 +208,9 @@ enum State on_game_update(struct GameObjects* game_objects, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    ball_move(&game_objects->ball, game_objects->paddle, dt);
+    if (!ball_move(&game_objects->ball, game_objects->paddle, dt))
+        return Failed;
+
     game_objects->score += ball_bricks_collision(&game_objects->ball, game_objects->bricks);
     if (game_objects->score == NUM_BRICKS)
         return Success;
