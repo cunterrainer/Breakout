@@ -102,11 +102,11 @@ void play_sound(Sound sound)
     if (IsSoundPlaying(sound))
     {
         StopSound(sound);
-        PlaySound(sound);
+        PlaySoundRaylib(sound);
     }
     else
     {
-        PlaySound(sound);
+        PlaySoundRaylib(sound);
     }
 }
 
