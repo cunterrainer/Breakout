@@ -13,6 +13,7 @@ project "raylib"
         "src/rtextures.c",
         "src/utils.c",
         "src/rglfw.c",
+        "src/raudio.c"
     }
 
     includedirs {

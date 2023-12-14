@@ -56,6 +56,10 @@ struct Application
     int width;
     int height;
     int font_size_menu;
+    Sound sound_hit_brick;
+    Sound sound_hit_paddle;
+    Sound sound_failed;
+    Sound sound_success;
 };
 
 
@@ -132,7 +136,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0)
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
@@ -153,6 +157,20 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
     else if (ball->center.y + ball->radius >= window_height)
         return 0;
     return 1;
+}
+
+
+void play_sound(Sound sound)
+{
+    if (IsSoundPlaying(sound))
+    {
+        StopSound(sound);
+        PlaySound(sound);
+    }
+    else
+    {
+        PlaySound(sound);
+    }
 }
 
 
@@ -193,7 +211,12 @@ enum State on_game_update(struct Application* app, float dt)
     if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt))
         return Failed;
 
-    app->game_objects.score += ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
+    const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
+    if (collision)
+    {
+        play_sound(app->sound_hit_brick);
+        app->game_objects.score += collision;
+    }
     if (app->game_objects.score == NUM_BRICKS)
         return Success;
     return Game;
@@ -305,7 +328,9 @@ int main()
     app.state = Menu;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
-
+    
+    InitAudioDevice();
+    app.sound_hit_brick = LoadSound("data/hit.wav");
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
@@ -352,5 +377,7 @@ int main()
 
         EndDrawing();
     }
+    UnloadSound(app.sound_hit_brick);
+    CloseAudioDevice();
     TerminateWindow();
 }
