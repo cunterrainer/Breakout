@@ -5,10 +5,6 @@
 #include "core.h"
 #include "winmain.h"
 
-#define WINDOW_WIDTH  1200
-#define WINDOW_HEIGHT 750
-#define PADDLE_WIDTH  230.f
-#define PADDLE_HEIGHT 30.f
 #define BRICKS_HOR    10 // num of horizontal bricks
 #define BRICKS_VER    7  // num of vertical bricks
 #define NUM_BRICKS    BRICKS_HOR * BRICKS_VER
@@ -304,11 +300,11 @@ enum State on_menu_update(const struct Application* app, const char* text)
 int main()
 {
     struct Application app;
-    app.width = WINDOW_WIDTH;
-    app.height = WINDOW_HEIGHT;
+    app.width = 1200;
+    app.height = 750;
     app.state = Menu;
     app.font_size_menu = 90;
-    app.game_objects = game_objects_init(app.width, app.height, PADDLE_WIDTH, PADDLE_HEIGHT);
+    app.game_objects = game_objects_init(app.width, app.height, 230, 30);
 
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
