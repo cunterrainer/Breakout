@@ -81,24 +81,6 @@ void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* brick
 }
 
 
-size_t ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
-{
-    size_t collisions = 0;
-    for (size_t i = 0; i < NUM_BRICKS; ++i)
-    {
-        if (bricks[i].rec.x > 0 && CheckCollisionCircleRec(ball.center, ball.radius, bricks[i].rec))
-        {
-            bricks[i].rec.x = -20;
-            bricks[i].rec.y = -20;
-            bricks[i].rec.width = 0;
-            bricks[i].rec.height = 0;
-            ++collisions;
-        }
-    }
-    return collisions;
-}
-
-
 Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direction)
 {
     const float dot_product = current_direction.x * normal.x + current_direction.y * normal.y;
@@ -107,6 +89,28 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
     reflected_direction.x = current_direction.x - 2.0f * dot_product * normal.x;
     reflected_direction.y = current_direction.y - 2.0f * dot_product * normal.y;
     return reflected_direction;
+}
+
+
+
+size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
+{
+    size_t collisions = 0;
+    for (size_t i = 0; i < NUM_BRICKS; ++i)
+    {
+        if (bricks[i].rec.x > 0 && CheckCollisionCircleRec(ball->center, ball->radius, bricks[i].rec))
+        {
+            bricks[i].rec.x = -20;
+            bricks[i].rec.y = -20;
+            bricks[i].rec.width = 0;
+            bricks[i].rec.height = 0;
+            ++collisions;
+
+            ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
+            break;
+        }
+    }
+    return collisions;
 }
 
 
@@ -152,7 +156,7 @@ int main()
         ClearBackground(background_color);
 
         ball_move(&ball, paddle, dt);
-        score += ball_bricks_collision(ball, bricks);
+        score += ball_bricks_collision(&ball, bricks);
 
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
             paddle.x = MAX(0, paddle.x - 750 * dt);
