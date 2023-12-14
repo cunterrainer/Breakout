@@ -110,7 +110,7 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
 }
 
 
-void ball_move(struct Ball* ball, float dt)
+void ball_move(struct Ball* ball, Rectangle paddle, float dt)
 {
     const float speed = 100.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -123,7 +123,7 @@ void ball_move(struct Ball* ball, float dt)
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0)
+    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0 || CheckCollisionCircleRec(ball->center, ball->radius, paddle))
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
@@ -141,7 +141,7 @@ int main()
     generate_bricks(bricks);
 
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
-    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 15 }, .radius = 15.f, .direction = { 1, -1 } };
+    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 20 }, .radius = 15.f, .direction = { 1, -1 } };
 
     size_t score = 0;
 
@@ -151,7 +151,7 @@ int main()
         BeginDrawing();
         ClearBackground(background_color);
 
-        ball_move(&ball, dt);
+        ball_move(&ball, paddle, dt);
         score += ball_bricks_collision(ball, bricks);
 
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
