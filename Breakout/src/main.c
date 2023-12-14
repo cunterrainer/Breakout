@@ -130,9 +130,20 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0 || CheckCollisionCircleRec(ball->center, ball->radius, paddle))
+    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0)
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
+    }
+    else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
+    {
+        if (ball->center.x <= paddle.x || ball->center.x >= paddle.x + paddle.width)
+        {
+            ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
+        }
+        else
+        {
+            ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
+        }
     }
 }
 
