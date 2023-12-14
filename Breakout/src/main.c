@@ -140,7 +140,6 @@ int main()
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
-    HideCursor();
 
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
