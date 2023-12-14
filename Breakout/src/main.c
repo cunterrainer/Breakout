@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "raylib.h"
 
 #include "core.h"
@@ -59,7 +61,7 @@ void generate_bricks(struct Brick* bricks)
 }
 
 
-void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* bricks)
+void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* bricks, size_t score)
 {
     DrawRectangleRec(paddle, RED);
     DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
@@ -67,6 +69,15 @@ void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* brick
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
         DrawRectangleRec(bricks[i].rec, bricks[i].col);
     }
+
+
+    const int font_size = 45;
+    char str[5] = { 0 }; // max score 9999
+    snprintf(str, sizeof(str), "%zu", score);
+
+    const int text_length = MeasureText(str, font_size);
+    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
+    DrawText(str, x_pos, 10, font_size, GRAY);
 }
 
 
@@ -125,8 +136,11 @@ int main()
 
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
+
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
     struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 15 }, .radius = 15.f, .direction = { 1, -1 } };
+
+    size_t score = 0;
 
     while (!WindowShouldClose())
     {
@@ -142,7 +156,7 @@ int main()
         if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
             paddle.x = MIN(paddle.x + 750 * dt, WINDOW_WIDTH - paddle.width);
 
-        draw_entities(paddle, ball, bricks);
+        draw_entities(paddle, ball, bricks, score);
         EndDrawing();
     }
     TerminateWindow();
