@@ -37,7 +37,7 @@ project "Breakout"
             "vla",
             "shift-overflow"
         }
-        disablewarnings "unused-parameter"
+        disablewarnings { "unused-parameter", "conversion" }
 
     filter "toolset:gcc*"
         warnings "Extra"
