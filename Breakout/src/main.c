@@ -59,6 +59,7 @@ struct Application
     enum State state;
     int width;
     int height;
+    int font_size_menu;
 };
 
 
@@ -262,6 +263,7 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
         }
     }
 
+    app->font_size_menu = app_transform(app->font_size_menu, MAX(app->width, app->height), MAX(new_width, new_height));
     app->width = new_width;
     app->height = new_height;
 }
@@ -269,26 +271,25 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
 
 enum State on_menu_update(const struct Application* app, const char* text)
 {
-    const int font_size = 90;
-    const int text_length = MeasureText(text, font_size);
+    const int text_length = MeasureText(text, app->font_size_menu);
     const int x_pos = (app->width - text_length) / 2;
-    const int y_pos = (app->height - font_size) / 2;
+    const int y_pos = (app->height - app->font_size_menu) / 2;
 
     switch (app->state)
     {
     case Menu:
     case Break:
-        DrawText(text, x_pos, y_pos, font_size, DARKGRAY);
+        DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
             return Game;
         if (IsKeyPressed(KEY_R))
             return Reset;
         return app->state;
     case Success:
-        DrawText(text, x_pos, y_pos, font_size, GOLD);
+        DrawText(text, x_pos, y_pos, app->font_size_menu, GOLD);
         break;
     case Failed:
-        DrawText(text, x_pos, y_pos, font_size, RED);
+        DrawText(text, x_pos, y_pos, app->font_size_menu, RED);
         break;
     default:
         break;
@@ -306,6 +307,7 @@ int main()
     app.width = WINDOW_WIDTH;
     app.height = WINDOW_HEIGHT;
     app.state = Menu;
+    app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, PADDLE_WIDTH, PADDLE_HEIGHT);
 
     InitWindow(app.width, app.height, "Breakout");
