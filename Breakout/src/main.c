@@ -33,6 +33,15 @@ struct Ball
 };
 
 
+struct GameObjects
+{
+    struct Brick bricks[NUM_BRICKS];
+    Rectangle paddle;
+    struct Ball ball;
+    size_t score;
+};
+
+
 void generate_bricks(struct Brick* bricks)
 {
     const float brick_width = WINDOW_WIDTH / (float)BRICKS_HOR - BRICK_PADDING*2;
@@ -151,43 +160,78 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
 }
 
 
+struct GameObjects game_objects_init()
+{
+    struct GameObjects objects;
+    objects.score = 0;
+    objects.paddle = (Rectangle){ (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, WINDOW_HEIGHT - 60, PADDLE_WIDTH, PADDLE_HEIGHT };
+    objects.ball = (struct Ball) { { objects.paddle.x + PADDLE_WIDTH / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 } };
+    generate_bricks(objects.bricks);
+    return objects;
+}
+
+
+void on_game_update(struct GameObjects* game_objects, float dt)
+{
+    static float prev_mouse_pos = 0.f;
+
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
+        game_objects->paddle.x = MAX(0, game_objects->paddle.x - 800 * dt);
+    }
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
+        game_objects->paddle.x = MIN(game_objects->paddle.x + 800 * dt, WINDOW_WIDTH - game_objects->paddle.width);
+    }
+
+    const float mouse_pos = GetMousePosition().x;
+    if (prev_mouse_pos != mouse_pos)
+    {
+        game_objects->paddle.x = mouse_pos - game_objects->paddle.width / 2;
+        game_objects->paddle.x = MIN(game_objects->paddle.x, WINDOW_WIDTH - game_objects->paddle.width);
+        game_objects->paddle.x = MAX(0, game_objects->paddle.x);
+        prev_mouse_pos = mouse_pos;
+    }
+
+    ball_move(&game_objects->ball, game_objects->paddle, dt);
+    game_objects->score += ball_bricks_collision(&game_objects->ball, game_objects->bricks);
+}
+
+
+void on_game_render(const struct GameObjects* game_objects)
+{
+    BeginDrawing();
+    ClearBackground((Color) { 10, 10, 10, 255 });
+
+    DrawRectangleRec(game_objects->paddle, RED);
+    DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+
+    for (size_t i = 0; i < NUM_BRICKS; ++i) {
+        DrawRectangleRec(game_objects->bricks[i].rec, game_objects->bricks[i].col);
+    }
+
+
+    const int font_size = 45;
+    char str[5] = { 0 }; // max score 9999
+    snprintf(str, sizeof(str), "%zu", game_objects->score);
+
+    const int text_length = MeasureText(str, font_size);
+    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
+    DrawText(str, x_pos, 10, font_size, GRAY);
+    EndDrawing();
+}
+
+
 int main()
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
 
-    struct Brick bricks[NUM_BRICKS] = { 0 };
-    generate_bricks(bricks);
-
-    Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
-    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 20 }, .radius = 15.f, .direction = { 1.4f, -1 } };
-
-    float prev_mouse_pos = -10.f;
-    size_t score = 0;
+    struct GameObjects game_objects = game_objects_init();
 
     while (!WindowShouldClose())
     {
-        const float dt = GetFrameTime();
-
-        ball_move(&ball, paddle, dt);
-        score += ball_bricks_collision(&ball, bricks);
-
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
-            paddle.x = MAX(0, paddle.x - 800 * dt);
-        if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
-            paddle.x = MIN(paddle.x + 800 * dt, WINDOW_WIDTH - paddle.width);
-
-        const float mouse_pos = GetMousePosition().x;
-        if (prev_mouse_pos != mouse_pos)
-        {
-            paddle.x = mouse_pos - paddle.width / 2;
-            paddle.x = MIN(paddle.x, WINDOW_WIDTH - paddle.width);
-            paddle.x = MAX(0, paddle.x);
-            prev_mouse_pos = mouse_pos;
-        }
-
-        draw_entities(paddle, ball, bricks, score);
+        on_game_update(&game_objects, GetFrameTime());
+        on_game_render(&game_objects);
     }
     TerminateWindow();
 }
