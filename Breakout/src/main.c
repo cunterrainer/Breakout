@@ -212,7 +212,10 @@ enum State on_game_update(struct Application* app, float dt)
     }
 
     if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt, app->sound_hit_paddle))
+    {
+        play_sound(app->sound_failed);
         return Failed;
+    }
 
     const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
     if (collision)
@@ -339,6 +342,7 @@ int main()
     app.sound_hit_brick = LoadSound("data/hit.wav");
     app.sound_hit_paddle = LoadSound("data/hit_paddle.wav");
     app.sound_start = LoadSound("data/start.wav");
+    app.sound_failed = LoadSound("data/game_fail.wav");
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
@@ -385,6 +389,7 @@ int main()
 
         EndDrawing();
     }
+    UnloadSound(app.sound_failed);
     UnloadSound(app.sound_start);
     UnloadSound(app.sound_hit_brick);
     UnloadSound(app.sound_hit_paddle);
