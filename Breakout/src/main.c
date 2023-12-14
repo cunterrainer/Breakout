@@ -42,6 +42,16 @@ struct GameObjects
 };
 
 
+enum State
+{
+    Menu,
+    Game,
+    Break,
+    Failed,
+    Success
+};
+
+
 void generate_bricks(struct Brick* bricks)
 {
     const float brick_width = WINDOW_WIDTH / (float)BRICKS_HOR - BRICK_PADDING*2;
@@ -198,9 +208,6 @@ void on_game_update(struct GameObjects* game_objects, float dt)
 
 void on_game_render(const struct GameObjects* game_objects)
 {
-    BeginDrawing();
-    ClearBackground((Color) { 10, 10, 10, 255 });
-
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
@@ -216,7 +223,25 @@ void on_game_render(const struct GameObjects* game_objects)
     const int text_length = MeasureText(str, font_size);
     const int x_pos = (WINDOW_WIDTH - text_length) / 2;
     DrawText(str, x_pos, 10, font_size, GRAY);
-    EndDrawing();
+}
+
+
+enum State on_menu_update()
+{
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D))
+        return Game;
+    return Menu;
+}
+
+
+void on_menu_render(const char* text, enum State game_state)
+{
+    const int font_size = 90;
+    game_state = 1;
+    const int text_length = MeasureText(text, font_size);
+    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
+    const int y_pos = (WINDOW_HEIGHT - font_size) / 2;
+    DrawText(text, x_pos, y_pos, font_size, GOLD);
 }
 
 
@@ -226,12 +251,33 @@ int main()
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
 
+    enum State game_state = Menu;
     struct GameObjects game_objects = game_objects_init();
 
     while (!WindowShouldClose())
     {
-        on_game_update(&game_objects, GetFrameTime());
-        on_game_render(&game_objects);
+        BeginDrawing();
+        ClearBackground((Color) { 10, 10, 10, 255 });
+
+        switch (game_state)
+        {
+        case Menu:
+            game_state = on_menu_update();
+            on_game_render(&game_objects);
+            on_menu_render("Press A|D to start", Menu);
+            break;
+        case Game:
+            on_game_update(&game_objects, GetFrameTime());
+            on_game_render(&game_objects);
+            break;
+        case Break:
+                break;
+        case Success:
+        case Failed:
+            break;
+        }
+
+        EndDrawing();
     }
     TerminateWindow();
 }
