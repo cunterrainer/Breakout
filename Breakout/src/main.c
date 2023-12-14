@@ -96,7 +96,6 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
 }
 
 
-
 size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 {
     size_t collisions = 0;
