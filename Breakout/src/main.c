@@ -140,6 +140,7 @@ int main()
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
+    HideCursor();
 
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
@@ -147,6 +148,7 @@ int main()
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
     struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 20 }, .radius = 15.f, .direction = { 1, -1 } };
 
+    float prev_mouse_pos = -10.f;
     size_t score = 0;
 
     while (!WindowShouldClose())
@@ -162,6 +164,15 @@ int main()
             paddle.x = MAX(0, paddle.x - 750 * dt);
         if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
             paddle.x = MIN(paddle.x + 750 * dt, WINDOW_WIDTH - paddle.width);
+
+        const float mouse_pos = GetMousePosition().x;
+        if (prev_mouse_pos != mouse_pos)
+        {
+            paddle.x = mouse_pos - paddle.width / 2;
+            paddle.x = MIN(paddle.x, WINDOW_WIDTH - paddle.width);
+            paddle.x = MAX(0, paddle.x);
+            prev_mouse_pos = mouse_pos;
+        }
 
         draw_entities(paddle, ball, bricks, score);
         EndDrawing();
