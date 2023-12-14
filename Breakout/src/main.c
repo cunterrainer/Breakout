@@ -27,6 +27,7 @@ struct Ball
 {
     Vector2 center;
     float radius;
+    Vector2 direction;
 };
 
 
@@ -58,6 +59,17 @@ void generate_bricks(struct Brick* bricks)
 }
 
 
+void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* bricks)
+{
+    DrawRectangleRec(paddle, RED);
+    DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
+
+    for (size_t i = 0; i < NUM_BRICKS; ++i) {
+        DrawRectangleRec(bricks[i].rec, bricks[i].col);
+    }
+}
+
+
 void ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
 {
     for (size_t i = 0; i < NUM_BRICKS; ++i)
@@ -73,6 +85,46 @@ void ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
 }
 
 
+Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direction)
+{
+    const float dot_product = current_direction.x * normal.x + current_direction.y * normal.y;
+
+    Vector2 reflected_direction;
+    reflected_direction.x = current_direction.x - 2.0f * dot_product * normal.x;
+    reflected_direction.y = current_direction.y - 2.0f * dot_product * normal.y;
+    return reflected_direction;
+}
+
+
+void ball_move(struct Ball* ball, float dt)
+{
+    const float speed = 100.f;
+    ball->center.x += ball->direction.x * dt * speed;
+    ball->center.y += ball->direction.y * dt * speed;
+
+    if (ball->center.x >= WINDOW_WIDTH && ball->direction.x > 0)
+    {
+        const Vector2 normal = { .x = -1, .y = 0 };
+        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+    }
+    else if (ball->center.y <= 0 && ball->direction.y < 0)
+    {
+        const Vector2 normal = { .x = 0, .y = 1 };
+        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+    }
+    else if (ball->center.x <= 0 && ball->direction.x < 0)
+    {
+        const Vector2 normal = { .x = 1, .y = 0 };
+        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+    }
+    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0)
+    {
+        const Vector2 normal = { .x = 0, .y = -1 };
+        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+    }
+}
+
+
 int main()
 {
     const Color background_color = { .r = 10, .g = 10, .b = 10, .a = 255 };
@@ -83,7 +135,7 @@ int main()
     struct Brick bricks[NUM_BRICKS] = { 0 };
     generate_bricks(bricks);
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
-    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 15 }, .radius = 15.f};
+    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 15 }, .radius = 15.f, .direction = { 1, -1 } };
 
     while (!WindowShouldClose())
     {
@@ -91,6 +143,7 @@ int main()
         BeginDrawing();
         ClearBackground(background_color);
 
+        ball_move(&ball, dt);
         ball_bricks_collision(ball, bricks);
 
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
@@ -98,12 +151,7 @@ int main()
         if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT))
             paddle.x = MIN(paddle.x + 750 * dt, WINDOW_WIDTH - paddle.width);
 
-        DrawRectangleRec(paddle, RED);
-        DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
-
-        for (size_t i = 0; i < NUM_BRICKS; ++i)
-            DrawRectangleRec(bricks[i].rec, bricks[i].col);
-
+        draw_entities(paddle, ball, bricks);
         EndDrawing();
     }
     TerminateWindow();
