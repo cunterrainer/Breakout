@@ -274,7 +274,6 @@ enum State on_menu_update(const char* text, enum State game_state)
 int main()
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
-    SetTargetFPS(60);
     SetExitKey(KEY_NULL);
 
     enum State game_state = Menu;
