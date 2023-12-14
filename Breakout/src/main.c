@@ -119,7 +119,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 
 void ball_move(struct Ball* ball, Rectangle paddle, float dt)
 {
-    const float speed = 600.f;
+    const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
     ball->center.y += ball->direction.y * dt * speed;
 
