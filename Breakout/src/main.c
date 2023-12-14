@@ -158,7 +158,7 @@ int main()
     generate_bricks(bricks);
 
     Rectangle paddle = { .x = (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, .y = WINDOW_HEIGHT - 60, .width = PADDLE_WIDTH, .height = PADDLE_HEIGHT};
-    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 20 }, .radius = 15.f, .direction = { 1, -1 } };
+    struct Ball ball = { .center = { paddle.x + PADDLE_WIDTH / 2.f, paddle.y - 20 }, .radius = 15.f, .direction = { 1.4f, -1 } };
 
     float prev_mouse_pos = -10.f;
     size_t score = 0;
