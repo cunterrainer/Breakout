@@ -146,7 +146,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, float dt)
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if (ball->center.x + ball->radius >= WINDOW_WIDTH && ball->direction.x > 0 || ball->center.x - ball->radius <= 0 && ball->direction.x < 0)
+    if ((ball->center.x + ball->radius >= WINDOW_WIDTH && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
@@ -309,6 +309,8 @@ int main()
         case Reset:
             game_objects = game_objects_init();
             game_state = Menu;
+            break;
+        default:
             break;
         }
 

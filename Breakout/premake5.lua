@@ -16,7 +16,7 @@ project "Breakout"
             "disabled-optimization",
             "format=2",
             "init-self",
-            "missing-declarations",
+            --"missing-declarations",
             "missing-include-dirs",
             "redundant-decls",
             "shadow",
