@@ -41,7 +41,7 @@ void generate_bricks(struct Brick* bricks)
     const Color colors[BRICKS_VER] = { RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, SKYBLUE };
 
     float current_x = BRICK_PADDING;
-    float current_y = 50;
+    float current_y = 60;
     for (size_t i = 0; i < NUM_BRICKS; ++i)
     {
         bricks[i].rec.x = current_x;
