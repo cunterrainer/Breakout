@@ -12,11 +12,19 @@
 */
 
 #if defined TOOLCHAIN_CLANG && defined RELEASE && defined SYSTEM_WINDOWS
-    #ifdef _WINBASE_
-        #define main() WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+    #ifdef __cplusplus
+        #ifdef _WINBASE_
+            #define main() WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
+        #else
+            #define main() __stdcall WinMain(void*, void*, char*, int)
+        #endif // _WINBASE_
     #else
-        #define main() APIENTRY WinMain(void*, void*, char*, int)
-    #endif
+        #ifdef _WINBASE_
+            #define main() WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, LPSTR cmdline, int cmdshow)
+        #else
+            #define main() __stdcall WinMain(void* hInst, void* hInstPrev, char* cmdline, int cmdshow)
+        #endif // _WINBASE_
+    #endif // __cplusplus
 #endif
 
 #endif // WINMAIN_H
