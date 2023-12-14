@@ -136,9 +136,12 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
     {
-        if (ball->center.x <= paddle.x || ball->center.x >= paddle.x + paddle.width)
+        // if you hit the ball in the first 35 % the ball goes back the direction reverses
+        // if going from left to right                                                    if going from right to left
+        if ((ball->direction.x > 0 && ball->center.x < paddle.x + paddle.width * 0.35) || (ball->direction.x < 0 && ball->center.x > paddle.x + paddle.width * 0.65))
         {
-            ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
+            ball->direction.x = -ball->direction.x;
+            ball->direction.y = -ball->direction.y;
         }
         else
         {
