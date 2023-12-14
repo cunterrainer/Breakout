@@ -152,7 +152,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
     {
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
@@ -224,7 +224,10 @@ enum State on_game_update(struct Application* app, float dt)
         app->game_objects.score += collision;
     }
     if (app->game_objects.score == NUM_BRICKS)
+    {
+        play_sound(app->sound_success);
         return Success;
+    }
     return Game;
 }
 
@@ -343,6 +346,7 @@ int main()
     app.sound_hit_paddle = LoadSound("data/hit_paddle.wav");
     app.sound_start = LoadSound("data/start.wav");
     app.sound_failed = LoadSound("data/game_fail.wav");
+    app.sound_success = LoadSound("data/game_win.wav");
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
@@ -389,6 +393,7 @@ int main()
 
         EndDrawing();
     }
+    UnloadSound(app.sound_success);
     UnloadSound(app.sound_failed);
     UnloadSound(app.sound_start);
     UnloadSound(app.sound_hit_brick);
