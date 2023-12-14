@@ -63,6 +63,9 @@ void generate_bricks(struct Brick* bricks)
 
 void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* bricks, size_t score)
 {
+    BeginDrawing();
+    ClearBackground((Color){ 10, 10, 10, 255 });
+
     DrawRectangleRec(paddle, RED);
     DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
 
@@ -78,6 +81,7 @@ void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* brick
     const int text_length = MeasureText(str, font_size);
     const int x_pos = (WINDOW_WIDTH - text_length) / 2;
     DrawText(str, x_pos, 10, font_size, GRAY);
+    EndDrawing();
 }
 
 
@@ -136,7 +140,6 @@ void ball_move(struct Ball* ball, Rectangle paddle, float dt)
 
 int main()
 {
-    const Color background_color = { .r = 10, .g = 10, .b = 10, .a = 255 };
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Breakout");
     SetTargetFPS(60);
     SetExitKey(KEY_NULL);
@@ -153,8 +156,6 @@ int main()
     while (!WindowShouldClose())
     {
         const float dt = GetFrameTime();
-        BeginDrawing();
-        ClearBackground(background_color);
 
         ball_move(&ball, paddle, dt);
         score += ball_bricks_collision(&ball, bricks);
@@ -174,7 +175,6 @@ int main()
         }
 
         draw_entities(paddle, ball, bricks, score);
-        EndDrawing();
     }
     TerminateWindow();
 }
