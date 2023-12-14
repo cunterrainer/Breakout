@@ -62,9 +62,9 @@ struct Application
 };
 
 
-void generate_bricks(struct Brick* bricks)
+void generate_bricks(struct Brick* bricks, int window_width, int paddle_height)
 {
-    const float brick_width = WINDOW_WIDTH / (float)BRICKS_HOR - BRICK_PADDING*2;
+    const float brick_width = window_width / (float)BRICKS_HOR - BRICK_PADDING*2;
 
     size_t color_idx = 0;
     const Color colors[BRICKS_VER] = { RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, SKYBLUE };
@@ -76,41 +76,17 @@ void generate_bricks(struct Brick* bricks)
         bricks[i].rec.x = current_x;
         bricks[i].rec.y = current_y;
         bricks[i].rec.width = brick_width;
-        bricks[i].rec.height = PADDLE_HEIGHT;
+        bricks[i].rec.height = paddle_height;
         bricks[i].col = colors[color_idx];
         current_x += brick_width + BRICK_PADDING*2;
 
         if ((i + 1) % BRICKS_HOR == 0)
         {
             current_x = BRICK_PADDING;
-            current_y += PADDLE_HEIGHT + 5;
+            current_y += paddle_height + 5;
             color_idx++;
         }
     }
-}
-
-
-void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* bricks, size_t score)
-{
-    BeginDrawing();
-    ClearBackground((Color){ 10, 10, 10, 255 });
-
-    DrawRectangleRec(paddle, RED);
-    DrawCircleV(ball.center, ball.radius, LIGHTGRAY);
-
-    for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        DrawRectangleRec(bricks[i].rec, bricks[i].col);
-    }
-
-
-    const int font_size = 45;
-    char str[5] = { 0 }; // max score 9999
-    snprintf(str, sizeof(str), "%zu", score);
-
-    const int text_length = MeasureText(str, font_size);
-    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
-    DrawText(str, x_pos, 10, font_size, GRAY);
-    EndDrawing();
 }
 
 
@@ -146,7 +122,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, float dt)
+int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_height, float dt)
 {
     const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -155,7 +131,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, float dt)
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if ((ball->center.x + ball->radius >= WINDOW_WIDTH && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
+    if ((ball->center.x + ball->radius >= window_width && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
@@ -177,24 +153,24 @@ int ball_move(struct Ball* ball, Rectangle paddle, float dt)
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
     }
-    else if (ball->center.y + ball->radius >= WINDOW_HEIGHT)
+    else if (ball->center.y + ball->radius >= window_height)
         return 0;
     return 1;
 }
 
 
-struct GameObjects game_objects_init()
+struct GameObjects game_objects_init(int window_width, int window_height, int paddle_width, int paddle_height)
 {
     struct GameObjects objects;
     objects.score = 0;
-    objects.paddle = (Rectangle){ (WINDOW_WIDTH - PADDLE_WIDTH) / 2.f, WINDOW_HEIGHT - 60, PADDLE_WIDTH, PADDLE_HEIGHT };
-    objects.ball = (struct Ball) { { objects.paddle.x + PADDLE_WIDTH / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 } };
-    generate_bricks(objects.bricks);
+    objects.paddle = (Rectangle){ (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
+    objects.ball = (struct Ball) { { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 } };
+    generate_bricks(objects.bricks, window_width, paddle_height);
     return objects;
 }
 
 
-enum State on_game_update(struct GameObjects* game_objects, float dt)
+enum State on_game_update(struct Application* app, float dt)
 {
     static float prev_mouse_pos = 0.f;
 
@@ -202,32 +178,32 @@ enum State on_game_update(struct GameObjects* game_objects, float dt)
         return Break;
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-        game_objects->paddle.x = MAX(0, game_objects->paddle.x - 800 * dt);
+        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 800 * dt);
     }
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        game_objects->paddle.x = MIN(game_objects->paddle.x + 800 * dt, WINDOW_WIDTH - game_objects->paddle.width);
+        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 800 * dt, app->width - app->game_objects.paddle.width);
     }
 
     const float mouse_pos = GetMousePosition().x;
     if (prev_mouse_pos != mouse_pos)
     {
-        game_objects->paddle.x = mouse_pos - game_objects->paddle.width / 2;
-        game_objects->paddle.x = MIN(game_objects->paddle.x, WINDOW_WIDTH - game_objects->paddle.width);
-        game_objects->paddle.x = MAX(0, game_objects->paddle.x);
+        app->game_objects.paddle.x = mouse_pos - app->game_objects.paddle.width / 2;
+        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x, app->width - app->game_objects.paddle.width);
+        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x);
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&game_objects->ball, game_objects->paddle, dt))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt))
         return Failed;
 
-    game_objects->score += ball_bricks_collision(&game_objects->ball, game_objects->bricks);
-    if (game_objects->score == NUM_BRICKS)
+    app->game_objects.score += ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
+    if (app->game_objects.score == NUM_BRICKS)
         return Success;
     return Game;
 }
 
 
-void on_game_render(const struct GameObjects* game_objects)
+void on_game_render(const struct GameObjects* game_objects, int window_width)
 {
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
@@ -242,7 +218,7 @@ void on_game_render(const struct GameObjects* game_objects)
     snprintf(str, sizeof(str), "%zu", game_objects->score);
 
     const int text_length = MeasureText(str, font_size);
-    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
+    const int x_pos = (window_width - text_length) / 2;
     DrawText(str, x_pos, 10, font_size, GRAY);
 }
 
@@ -291,14 +267,14 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
 }
 
 
-enum State on_menu_update(const char* text, enum State game_state)
+enum State on_menu_update(const struct Application* app, const char* text)
 {
     const int font_size = 90;
     const int text_length = MeasureText(text, font_size);
-    const int x_pos = (WINDOW_WIDTH - text_length) / 2;
-    const int y_pos = (WINDOW_HEIGHT - font_size) / 2;
+    const int x_pos = (app->width - text_length) / 2;
+    const int y_pos = (app->height - font_size) / 2;
 
-    switch (game_state)
+    switch (app->state)
     {
     case Menu:
     case Break:
@@ -307,7 +283,7 @@ enum State on_menu_update(const char* text, enum State game_state)
             return Game;
         if (IsKeyPressed(KEY_R))
             return Reset;
-        return game_state;
+        return app->state;
     case Success:
         DrawText(text, x_pos, y_pos, font_size, GOLD);
         break;
@@ -320,17 +296,17 @@ enum State on_menu_update(const char* text, enum State game_state)
 
     if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE))
         return Reset;
-    return game_state;
+    return app->state;
 }
 
 
 int main()
 {
     struct Application app;
-    app.game_objects = game_objects_init();
     app.width = WINDOW_WIDTH;
     app.height = WINDOW_HEIGHT;
     app.state = Menu;
+    app.game_objects = game_objects_init(app.width, app.height, PADDLE_WIDTH, PADDLE_HEIGHT);
 
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
@@ -349,27 +325,27 @@ int main()
         switch (app.state)
         {
         case Menu:
-            on_game_render(&app.game_objects);
-            app.state = on_menu_update("Press A|D to start", Menu); // to render the menu on top of the game not vice versa
+            on_game_render(&app.game_objects, app.width);
+            app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
             break;
         case Game:
-            app.state = on_game_update(&app.game_objects, GetFrameTime());
-            on_game_render(&app.game_objects);
+            app.state = on_game_update(&app, GetFrameTime());
+            on_game_render(&app.game_objects, app.width);
             break;
         case Break:
-            on_game_render(&app.game_objects);
-            app.state = on_menu_update("Paused", Break);
+            on_game_render(&app.game_objects, app.width);
+            app.state = on_menu_update(&app, "Paused");
             break;
         case Success:
-            on_game_render(&app.game_objects);
-            app.state = on_menu_update("You won!", Success);
+            on_game_render(&app.game_objects, app.width);
+            app.state = on_menu_update(&app, "You won!");
             break;
         case Failed:
-            on_game_render(&app.game_objects);
-            app.state = on_menu_update("You lost!", Failed);
+            on_game_render(&app.game_objects, app.width);
+            app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
-            app.game_objects = game_objects_init();
+            app.game_objects = game_objects_init(app.width, app.height, 230, 30);
             app.state = Menu;
             break;
         default:
