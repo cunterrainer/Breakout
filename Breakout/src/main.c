@@ -67,7 +67,7 @@ void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* brick
     ClearBackground((Color){ 10, 10, 10, 255 });
 
     DrawRectangleRec(paddle, RED);
-    DrawCircle((int)ball.center.x, (int)ball.center.y, ball.radius, LIGHTGRAY);
+    DrawCircleV(ball.center, ball.radius, LIGHTGRAY);
 
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
         DrawRectangleRec(bricks[i].rec, bricks[i].col);
