@@ -81,8 +81,9 @@ void draw_entities(Rectangle paddle, struct Ball ball, const struct Brick* brick
 }
 
 
-void ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
+size_t ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
 {
+    size_t collisions = 0;
     for (size_t i = 0; i < NUM_BRICKS; ++i)
     {
         if (bricks[i].rec.x > 0 && CheckCollisionCircleRec(ball.center, ball.radius, bricks[i].rec))
@@ -91,8 +92,10 @@ void ball_bricks_collision(const struct Ball ball, struct Brick* bricks)
             bricks[i].rec.y = -20;
             bricks[i].rec.width = 0;
             bricks[i].rec.height = 0;
+            ++collisions;
         }
     }
+    return collisions;
 }
 
 
@@ -149,7 +152,7 @@ int main()
         ClearBackground(background_color);
 
         ball_move(&ball, dt);
-        ball_bricks_collision(ball, bricks);
+        score += ball_bricks_collision(ball, bricks);
 
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT))
             paddle.x = MAX(0, paddle.x - 750 * dt);
