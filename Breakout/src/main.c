@@ -102,25 +102,16 @@ void ball_move(struct Ball* ball, float dt)
     ball->center.x += ball->direction.x * dt * speed;
     ball->center.y += ball->direction.y * dt * speed;
 
-    if (ball->center.x >= WINDOW_WIDTH && ball->direction.x > 0)
+    const Vector2 normal_hor = { .x = 1, .y = 0 };
+    const Vector2 normal_ver = { .x = 0, .y = 1 };
+
+    if (ball->center.x >= WINDOW_WIDTH && ball->direction.x > 0 || ball->center.x <= 0 && ball->direction.x < 0)
     {
-        const Vector2 normal = { .x = -1, .y = 0 };
-        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+        ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y <= 0 && ball->direction.y < 0)
+    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0 || ball->center.y <= 0 && ball->direction.y < 0)
     {
-        const Vector2 normal = { .x = 0, .y = 1 };
-        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
-    }
-    else if (ball->center.x <= 0 && ball->direction.x < 0)
-    {
-        const Vector2 normal = { .x = 1, .y = 0 };
-        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
-    }
-    else if (ball->center.y >= WINDOW_HEIGHT && ball->direction.y > 0)
-    {
-        const Vector2 normal = { .x = 0, .y = -1 };
-        ball->direction = ball_calculate_reflected_direction(normal, ball->direction);
+        ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
 }
 
