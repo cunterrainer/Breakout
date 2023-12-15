@@ -207,6 +207,55 @@ int ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
+void ball_animate_tail(struct Ball* ball, float speed, float dt)
+{
+    static const float speed_multiply = 0.9f;
+
+    // p1 is left p2 is right
+    // if from upper left to lower right
+    if ((ball->prev_direction.y > 0 && ball->prev_direction.x > 0)
+        && ((ball->tail.p1.x == ball->tail.p2.x && ball->tail.p3.x < ball->tail.p1.x)
+            || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y < ball->tail.p1.y))
+        )
+    {
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+    }
+    // if from lower left to upper right
+    else if ((ball->prev_direction.x > 0 && ball->prev_direction.y < 0)
+        && ((ball->tail.p1.x == ball->tail.p2.x && ball->tail.p3.x < ball->tail.p1.x)
+            || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y > ball->tail.p1.y))
+        )
+    {
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+    }
+    // if from upper right to lower left
+    else if ((ball->prev_direction.x < 0 && ball->prev_direction.y > 0)
+        && ((ball->tail.p1.x == ball->tail.p2.x && ball->tail.p3.x > ball->tail.p1.x)
+            || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y < ball->tail.p1.y))
+        )
+    {
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+    }
+    // if from lower right to upper left
+    else if ((ball->prev_direction.x < 0 && ball->prev_direction.y < 0)
+        && ((ball->tail.p1.x == ball->tail.p2.x && ball->tail.p3.x > ball->tail.p1.x)
+            || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y > ball->tail.p1.y))
+        )
+    {
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+    }
+    else
+    {
+        ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
+        ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
+    }
+}
+
+
 int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
 {
     const float speed = 500.f;
@@ -216,11 +265,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt
     static const Vector2 normal_hor = { .x = 1, .y = 0 };
     static const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if (!CheckCollisionPointLine(ball->tail.p3, ball->tail.p1, ball->tail.p2, 1))
-    {
-        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * 0.9f);
-        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * 0.9f);
-    }
+    ball_animate_tail(ball, speed, dt);
 
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
