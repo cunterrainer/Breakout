@@ -352,6 +352,12 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
         second = min_vector_x(p2, p3);
         third = max_vector_x(p2, p3);
     }
+    else if (p2.y < p1.y)
+    {
+        first = p2;
+        second = min_vector_x(p1, p3);
+        third = max_vector_x(p1, p3);
+    }
     else // p1.y == p2.y
     {
         first = min_vector_x(p1, p2);
@@ -380,15 +386,15 @@ void on_game_render(const struct GameObjects* game_objects, int window_width)
         ball_p2 = tmp;
     }
 
-    DrawLineV(ball_p1, tail->p1, RED);
-    DrawLineV(ball_p2, tail->p2, YELLOW);
+    //DrawLineV(ball_p1, tail->p1, RED);
+    //DrawLineV(ball_p2, tail->p2, YELLOW);
+    //
+    //DrawLineV(game_objects->tail.p1, game_objects->tail.p3, BLUE);
+    //DrawLineV(game_objects->tail.p2, game_objects->tail.p3, BLUE);
 
-    DrawLineV(game_objects->tail.p1, game_objects->tail.p3, BLUE);
-    DrawLineV(game_objects->tail.p2, game_objects->tail.p3, BLUE);
-
+    draw_triangle(tail->p1, tail->p2, ball_p1);
+    draw_triangle(ball_p1, ball_p2, tail->p2);
     draw_triangle(game_objects->tail.p1, game_objects->tail.p2, game_objects->tail.p3);
-
-    // tail end
 
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
