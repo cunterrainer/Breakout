@@ -46,6 +46,7 @@ struct Ball
 {
     Vector2 center;
     float radius;
+    float speed;
     Vector2 direction;
     Vector2 prev_direction;
     struct Tail tail;
@@ -214,10 +215,10 @@ void ball_move_tail_tip(struct Ball* ball, float speed, float dt)
 }
 
 
-void ball_animate_tail(struct Ball* ball, float speed, float dt)
+void ball_animate_tail(struct Ball* ball, float dt)
 {
     static const float speed_multiply = 0.9f;
-    speed = speed * speed_multiply;
+    const float speed = ball->speed * speed_multiply;
 
     // p1 is left p2 is right
     // if from upper left to lower right
@@ -262,14 +263,13 @@ void ball_animate_tail(struct Ball* ball, float speed, float dt)
 
 int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
 {
-    const float speed = 500.f;
-    ball->center.x += ball->direction.x * dt * speed;
-    ball->center.y += ball->direction.y * dt * speed;
+    ball->center.x += ball->direction.x * dt * ball->speed;
+    ball->center.y += ball->direction.y * dt * ball->speed;
 
     static const Vector2 normal_hor = { .x = 1, .y = 0 };
     static const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    ball_animate_tail(ball, speed, dt);
+    ball_animate_tail(ball, dt);
 
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
@@ -311,7 +311,7 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
     struct GameObjects objects;
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
-    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 }, { 0, 0 } };
+    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, 500.f, { 1.4f, -1 }, { 0, 0 } };
     objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - 7.f, objects.paddle.y };
     objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + 7.f, objects.paddle.y };
     objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
@@ -353,6 +353,7 @@ enum State on_game_update(struct Application* app, float dt)
     {
         play_sound(app->sound_objects.hit_brick);
         app->game_objects.score++;
+        app->game_objects.ball.speed += 6.f;
     }
     if (app->game_objects.score == NUM_BRICKS)
     {
