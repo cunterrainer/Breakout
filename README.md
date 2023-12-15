@@ -8,18 +8,20 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **A/D or left/right arrow:** Move the paddle horizontally.  
 - **Space:** Launch the ball at the start of the game or resume after a failed attempt.  
 - **R:** Reset the game.  
-- **ESC:** Pause/resume the game.
 - **M:** Mute the audio.
 - **X:** Render only the outlines of objects.
+- **F:** Show FPS.
+- **ESC:** Pause/resume the game.
 
 ## Controller
 Here, the PS4 controller buttons are used as an example, but other controllers will work as well:
 - **DPAD or Left Stick:** Move the paddle horizontally.  
 - **X:** Launch the ball at the start of the game or resume after a failed attempt.  
 - **△:** Reset the game.  
-- **OPTIONS:** Pause/resume the game.
 - **□**: Mute the audio.
 - **◯**: Render only the outlines of objects.
+- **SHARE:** Show FPS.
+- **OPTIONS:** Pause/resume the game.
 
 If you encounter issues with controller input, please verify that you have selected the correct controller, ensuring it corresponds to the first one assigned by your PC.
 
