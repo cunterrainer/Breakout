@@ -88,6 +88,7 @@ struct Application
     int height;
     int font_size_menu;
     int x_ray;
+    int show_fps;
     Texture2D volume_on;
     Texture2D volume_off;
 };
@@ -636,6 +637,7 @@ struct Application app_start()
 {
     struct Application app;
     app.x_ray = 0;
+    app.show_fps = 0;
     app.width = 1200;
     app.height = 750;
     app.state = Menu;
@@ -698,6 +700,17 @@ int main()
             app.sound_objects.failed.play     = !app.sound_objects.failed.play;
             app.sound_objects.success.play    = !app.sound_objects.success.play;
         }
+
+        if (IsKeyPressed(KEY_F) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_LEFT))
+        {
+            app.show_fps = !app.show_fps;
+        }
+
+        if (app.show_fps)
+        {
+            DrawFPS(10, 10);
+        }
+
 
         switch (app.state)
         {
