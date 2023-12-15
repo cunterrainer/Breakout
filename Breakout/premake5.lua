@@ -3,10 +3,17 @@ project "Breakout"
     cdialect "C11"
     flags "FatalWarnings"
 
+    filter { "toolset:gcc* or toolset:clang*", "platforms:x86", "system:windows" }
+        linkoptions "res/icon/iconx86.res"
+
+    filter { "toolset:gcc* or toolset:clang*", "platforms:x64", "system:windows" }
+        linkoptions "res/icon/icon.res"
+
     -- gcc* clang* msc*
     filter "toolset:msc*"
         warnings "High" -- High
         externalwarnings "Default" -- Default
+        files "res/icon/icon.rc"
         buildoptions { "/sdl" }
         disablewarnings "4244" -- float to int without cast
 
@@ -37,7 +44,7 @@ project "Breakout"
             "vla",
             "shift-overflow"
         }
-        disablewarnings { "unused-parameter", "conversion" }
+        disablewarnings { "unused-parameter", "conversion", "missing-field-initializers" }
 
     filter "toolset:gcc*"
         warnings "Extra"
