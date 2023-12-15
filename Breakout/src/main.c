@@ -324,13 +324,13 @@ enum State on_game_update(struct Application* app, float dt)
 {
     static float prev_mouse_pos = 0.f;
 
-    if (IsKeyPressed(KEY_ESCAPE))
+    if (IsKeyPressed(KEY_ESCAPE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
-    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0) {
         app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 1250 * dt);
     }
-    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0) {
         app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 1250 * dt, app->width - app->game_objects.paddle.width);
     }
 
@@ -520,12 +520,12 @@ enum State on_menu_update(const struct Application* app, const char* text)
     case Menu:
     case Break:
         DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
+        if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         {
             play_sound(app->sound_objects.start);
             return Game;
         }
-        if (IsKeyPressed(KEY_R))
+        if (IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
             return Reset;
         return app->state;
     case Success:
@@ -538,7 +538,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
         break;
     }
 
-    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE))
+    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
         return Reset;
     return app->state;
 }
@@ -685,12 +685,12 @@ int main()
             on_app_resize(&app, GetScreenWidth(), GetScreenHeight());
         }
 
-        if (IsKeyPressed(KEY_X))
+        if (IsKeyPressed(KEY_X) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT))
         {
             app.x_ray = !app.x_ray;
         }
 
-        if (IsKeyPressed(KEY_M))
+        if (IsKeyPressed(KEY_M) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT))
         {
             app.sound_objects.hit_brick.play  = !app.sound_objects.hit_brick.play;
             app.sound_objects.hit_paddle.play = !app.sound_objects.hit_paddle.play;
