@@ -366,8 +366,22 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
 
 void on_game_render(const struct GameObjects* game_objects, int window_width)
 {
-    DrawLine(game_objects->ball.center.x, game_objects->ball.center.y - game_objects->ball.radius, game_objects->tail.p1.x, game_objects->tail.p1.y, GREEN);
-    DrawLine(game_objects->ball.center.x, game_objects->ball.center.y + game_objects->ball.radius, game_objects->tail.p2.x, game_objects->tail.p2.y, GREEN);
+    const struct Ball* ball = &game_objects->ball;
+    const struct Tail* tail = &game_objects->tail;
+
+    Vector2 ball_p1 = { .x = ball->center.x, .y = ball->center.y - ball->radius };
+    Vector2 ball_p2 = { .x = ball->center.x, .y = ball->center.y + ball->radius };
+
+    Vector2 coll_point;
+    if (CheckCollisionLines(ball_p1, tail->p1, ball_p2, tail->p2, &coll_point))
+    {
+        Vector2 tmp = ball_p1;
+        ball_p1 = ball_p2;
+        ball_p2 = tmp;
+    }
+
+    DrawLineV(ball_p1, tail->p1, RED);
+    DrawLineV(ball_p2, tail->p2, YELLOW);
 
     DrawLineV(game_objects->tail.p1, game_objects->tail.p3, BLUE);
     DrawLineV(game_objects->tail.p2, game_objects->tail.p3, BLUE);
