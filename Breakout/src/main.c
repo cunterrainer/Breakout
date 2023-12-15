@@ -197,7 +197,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 
 int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, Sound hit_sound)
 {
-    const float speed = 250.f;
+    const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
     ball->center.y += ball->direction.y * dt * speed;
 
@@ -477,6 +477,12 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
     app->game_objects.ball.center.x = app_transform(app->game_objects.ball.center.x, app->width, new_width);
     app->game_objects.ball.center.y = app_transform(app->game_objects.ball.center.y, app->height, new_height);
     app->game_objects.ball.radius = app_transform(app->game_objects.ball.radius, app->width, new_width);
+    app->game_objects.ball.tail.p1.x = app_transform(app->game_objects.ball.tail.p1.x, app->width, new_width);
+    app->game_objects.ball.tail.p1.y = app_transform(app->game_objects.ball.tail.p1.y, app->height, new_height);
+    app->game_objects.ball.tail.p2.x = app_transform(app->game_objects.ball.tail.p2.x, app->width, new_width);
+    app->game_objects.ball.tail.p2.y = app_transform(app->game_objects.ball.tail.p2.y, app->height, new_height);
+    app->game_objects.ball.tail.p3.x = app_transform(app->game_objects.ball.tail.p3.x, app->width, new_width);
+    app->game_objects.ball.tail.p3.y = app_transform(app->game_objects.ball.tail.p3.y, app->height, new_height);
 
     float current_x = BRICK_PADDING;
     float current_y = 60;
