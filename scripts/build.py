@@ -76,11 +76,11 @@ def main():
     binDir = "BIN/"
 
     if sys.platform == "darwin":
-        gccProc = [[exePath, "gmake", "--cc=gcc"], ["make", "-j", "config=debug_universal"], ["make", "-j", "config=release_universal"]]
-        clangProc = [[exePath, "gmake", "--cc=clang"], ["make", "-j", "config=debug_universal"], ["make", "-j", "config=release_universal"]]
+        gccProc = [[exePath, "gmake2", "--cc=gcc"], ["make", "-j", "config=debug_universal"], ["make", "-j", "config=release_universal"]]
+        clangProc = [[exePath, "gmake2", "--cc=clang"], ["make", "-j", "config=debug_universal"], ["make", "-j", "config=release_universal"]]
     else:
-        gccProc = [[exePath, "gmake", "--cc=gcc"], ["make", "-j", "config=debug_x64"], ["make", "-j", "config=release_x64"]]
-        clangProc = [[exePath, "gmake", "--cc=clang"],
+        gccProc = [[exePath, "gmake2", "--cc=gcc"], ["make", "-j", "config=debug_x64"], ["make", "-j", "config=release_x64"]]
+        clangProc = [[exePath, "gmake2", "--cc=clang"],
                      ["make", "-j", "config=debug_x64"], ["make", "-j", "config=release_x64"],
                      ["make", "-j", "config=debug_x86"], ["make", "-j", "config=release_x86"]]
 

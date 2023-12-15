@@ -20,6 +20,9 @@ project "raylib"
         "src/external/glfw/include"
     }
 
+    filter { "system:macosx", "files:src/rglfw.c" }
+        compileas "Objective-C"
+
     filter "toolset:gcc* or toolset:clang*"
         disablewarnings "implicit-function-declaration"
 

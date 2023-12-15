@@ -44,7 +44,7 @@ project "Breakout"
             "vla",
             "shift-overflow"
         }
-        disablewarnings { "unused-parameter", "conversion", "missing-field-initializers" }
+        disablewarnings { "unused-parameter", "conversion", "missing-field-initializers", "unknown-warning-option" }
 
     filter "toolset:gcc*"
         warnings "Extra"
