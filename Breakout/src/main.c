@@ -38,6 +38,7 @@ struct Ball
     Vector2 center;
     float radius;
     Vector2 direction;
+    Vector2 prev_direction;
 };
 
 
@@ -184,6 +185,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks, struct Tai
             //bricks[i].rec.height = 0;
             ++collisions;
 
+            ball->prev_direction = ball->direction;
             tail_set_vertical_collision(tail, ball);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
             break;
@@ -202,18 +204,27 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct T
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
+    if (!CheckCollisionPointLine(tail->p3, tail->p1, tail->p2, 20))
+    {
+        tail->p3.x += ball->prev_direction.x * dt * (speed * 0.9f);
+        tail->p3.y += ball->prev_direction.y * dt * (speed * 0.9f);
+    }
+
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
+        ball->prev_direction = ball->direction;
         tail_set_horizontal_collision(tail, ball);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
     else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
     {
+        ball->prev_direction = ball->direction;
         tail_set_vertical_collision(tail, ball);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
     {
+        ball->prev_direction = ball->direction;
         // if you hit the ball in the first 25 % the ball goes back the direction reverses
         // if going from left to right                                                    if going from right to left
         if ((ball->direction.x > 0 && ball->center.x < paddle.x + paddle.width * 0.25) || (ball->direction.x < 0 && ball->center.x > paddle.x + paddle.width * 0.75))
@@ -239,7 +250,7 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
     struct GameObjects objects;
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
-    objects.ball = (struct Ball) { { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 } };
+    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 }, { 0, 0 } };
     objects.tail.p1 = (Vector2) { objects.ball.center.x - objects.ball.radius, objects.ball.center.y };
     objects.tail.p2 = (Vector2){ objects.ball.center.x + objects.ball.radius, objects.ball.center.y };
     objects.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
