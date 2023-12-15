@@ -57,17 +57,17 @@ This should generate a .sln file
 
 Windows:
 ``` bash
-vendor\premake5.exe gmake [cc]
+vendor\premake5.exe gmake2 [cc]
 ```
 
 Linux:
 ``` bash
-vendor/premake5linux gmake [cc]
+vendor/premake5linux gmake2 [cc]
 ```
 
 macOS:
 ``` bash
-vendor/premake5macos gmake [cc]
+vendor/premake5macos gmake2 [cc]
 ```
 
 GCC should be the default compiler on Windows and Linux, macOS uses Clang by default, but you can explicitly specify it if you want.  
