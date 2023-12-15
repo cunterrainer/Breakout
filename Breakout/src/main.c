@@ -393,6 +393,36 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
 }
 
 
+void game_render(const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
+{
+    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
+    draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
+    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+
+    DrawRectangleRec(game_objects->paddle, RED);
+    DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+
+    for (size_t i = 0; i < NUM_BRICKS; ++i) {
+        DrawRectangleRec(game_objects->bricks[i].rec, game_objects->bricks[i].col);
+    }
+}
+
+
+void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
+{
+    DrawLineV(ball_p1, game_objects->ball.tail.p1, tail_color);
+    DrawLineV(ball_p2, game_objects->ball.tail.p2, tail_color);
+    DrawLineV(game_objects->ball.tail.p1, game_objects->ball.tail.p3, tail_color);
+    DrawLineV(game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+
+    DrawRectangleLinesEx(game_objects->paddle, 1.f, RED);
+    DrawCircleLinesV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+
+    for (size_t i = 0; i < NUM_BRICKS; ++i) {
+        DrawRectangleLinesEx(game_objects->bricks[i].rec, 1.f, game_objects->bricks[i].col);
+    }
+}
+
 
 void on_game_render(const struct GameObjects* game_objects, int window_width, int x_ray)
 {
@@ -410,36 +440,24 @@ void on_game_render(const struct GameObjects* game_objects, int window_width, in
         ball_p2 = tmp;
     }
 
+    static const int score_font_size = 45;
+    char score_str[5] = { 0 }; // max score 9999
+    snprintf(score_str, ARRAY_SIZE(score_str), "%zu", game_objects->score);
+
+    const int text_length = MeasureText(score_str, score_font_size);
+    const int score_x_pos = (window_width - text_length) / 2;
+
     static const Color tail_color = { .r = 200, .g = 200, .b = 200, .a = 70 };
-    if (x_ray)
+    if (!x_ray)
     {
-        DrawLineV(ball_p1, tail->p1, tail_color);
-        DrawLineV(ball_p2, tail->p2, tail_color);
-        DrawLineV(tail->p1, tail->p3, tail_color);
-        DrawLineV(tail->p2, tail->p3, tail_color);
+        game_render(game_objects, ball_p1, ball_p2, tail_color);
     }
     else
     {
-        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
-        draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
-        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+        game_render_xray(game_objects, ball_p1, ball_p2, tail_color);
     }
 
-    DrawRectangleRec(game_objects->paddle, RED);
-    DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
-
-    for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        DrawRectangleRec(game_objects->bricks[i].rec, game_objects->bricks[i].col);
-    }
-
-
-    const int font_size = 45;
-    char str[5] = { 0 }; // max score 9999
-    snprintf(str, sizeof(str), "%zu", game_objects->score);
-
-    const int text_length = MeasureText(str, font_size);
-    const int x_pos = (window_width - text_length) / 2;
-    DrawText(str, x_pos, 10, font_size, GRAY);
+    DrawText(score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
 }
 
 
