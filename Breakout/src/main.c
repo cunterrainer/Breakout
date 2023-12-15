@@ -2,12 +2,8 @@
 
 #include "raylib.h"
 
+#include "sounds.h"
 #include "winmain.h"
-#include "sound_hit_wav.h"
-#include "sound_start_wav.h"
-#include "sound_game_win_wav.h"
-#include "sound_game_fail_wav.h"
-#include "sound_hit_paddle_wav.h"
 
 #define BRICKS_HOR    10 // num of horizontal bricks
 #define BRICKS_VER    7  // num of vertical bricks
