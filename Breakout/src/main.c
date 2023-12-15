@@ -216,8 +216,8 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt
     ball->center.x += ball->direction.x * dt * speed;
     ball->center.y += ball->direction.y * dt * speed;
 
-    const Vector2 normal_hor = { .x = 1, .y = 0 };
-    const Vector2 normal_ver = { .x = 0, .y = 1 };
+    static const Vector2 normal_hor = { .x = 1, .y = 0 };
+    static const Vector2 normal_ver = { .x = 0, .y = 1 };
 
     if (!CheckCollisionPointLine(ball->tail.p3, ball->tail.p1, ball->tail.p2, 1))
     {
