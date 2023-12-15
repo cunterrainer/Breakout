@@ -33,11 +33,21 @@ struct Brick
 };
 
 
+struct Tail
+{
+    Vector2 p1;
+    Vector2 p2;
+    Vector2 p3;
+};
+
+
 struct Ball
 {
     Vector2 center;
     float radius;
     Vector2 direction;
+    Vector2 prev_direction;
+    struct Tail tail;
 };
 
 
@@ -68,7 +78,20 @@ struct Application
     int width;
     int height;
     int font_size_menu;
+    int x_ray;
 };
+
+
+float max_3(float a, float b, float c)
+{
+    return a > b ? (a > c ? a : c) : (b > c ? b : c);
+}
+
+
+float min_3(float a, float b, float c)
+{
+    return a < b ? (a < c ? a : c) : (b < c ? b : c);
+}
 
 
 void generate_bricks(struct Brick* bricks, int window_width, int paddle_height)
@@ -113,6 +136,33 @@ void play_sound(Sound sound)
 }
 
 
+void tail_set_vertical_collision(struct Ball* ball, int from_above)
+{
+    const float radius = from_above ? ball->radius : -ball->radius;
+    ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
+    ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
+
+    ball->tail.p1.x = ball->center.x - ball->radius;
+    ball->tail.p1.y = ball->center.y + radius;
+
+    ball->tail.p2.x = ball->center.x + ball->radius;
+    ball->tail.p2.y = ball->center.y + radius;
+}
+
+
+void tail_set_horizontal_collision(struct Ball* ball, int right_wall)
+{
+    const float radius = right_wall ? ball->radius : -ball->radius;
+    ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
+    ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
+
+    ball->tail.p1.x = ball->center.x + radius;
+    ball->tail.p1.y = ball->center.y - ball->radius;
+
+    ball->tail.p2.x = ball->center.x + radius;
+    ball->tail.p2.y = ball->center.y + ball->radius;
+}
+
 
 Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direction)
 {
@@ -138,6 +188,8 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
             //bricks[i].rec.height = 0;
             ++collisions;
 
+            ball->prev_direction = ball->direction;
+            tail_set_vertical_collision(ball, ball->direction.y > 0);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
             break;
         }
@@ -146,7 +198,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_height, float dt, Sound hit_sound)
+int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, Sound hit_sound)
 {
     const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -155,16 +207,28 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if ((ball->center.x + ball->radius >= window_width && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
+    if (!CheckCollisionPointLine(ball->tail.p3, ball->tail.p1, ball->tail.p2, 20))
     {
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * 0.9f);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * 0.9f);
+    }
+
+    if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
+    {
+        ball->prev_direction = ball->direction;
+        tail_set_horizontal_collision(ball, ball->direction.x > 0);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0)
     {
+        ball->prev_direction = ball->direction;
+        tail_set_vertical_collision(ball, 0);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
     {
+        ball->prev_direction = ball->direction;
+        tail_set_vertical_collision(ball, ball->direction.y > 0);
         // if you hit the ball in the first 25 % the ball goes back the direction reverses
         // if going from left to right                                                    if going from right to left
         if ((ball->direction.x > 0 && ball->center.x < paddle.x + paddle.width * 0.25) || (ball->direction.x < 0 && ball->center.x > paddle.x + paddle.width * 0.75))
@@ -178,7 +242,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, int window_width, int window_
         }
         play_sound(hit_sound);
     }
-    else if (ball->center.y + ball->radius >= window_height)
+    else if (ball->center.y + ball->radius >= window_size.y)
         return 0;
     return 1;
 }
@@ -188,8 +252,11 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
 {
     struct GameObjects objects;
     objects.score = 0;
-    objects.paddle = (Rectangle){ (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
-    objects.ball = (struct Ball) { { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 } };
+    objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
+    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 }, { 0, 0 } };
+    objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - objects.ball.radius, objects.ball.center.y };
+    objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + objects.ball.radius, objects.ball.center.y };
+    objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
     generate_bricks(objects.bricks, window_width, paddle_height);
     return objects;
 }
@@ -218,7 +285,7 @@ enum State on_game_update(struct Application* app, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt, app->sound_objects.hit_paddle))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle))
     {
         play_sound(app->sound_objects.failed);
         return Failed;
@@ -239,8 +306,113 @@ enum State on_game_update(struct Application* app, float dt)
 }
 
 
-void on_game_render(const struct GameObjects* game_objects, int window_width)
+Vector2 min_vector_x(Vector2 v1, Vector2 v2)
 {
+    return v1.x < v2.x ? v1 : v2;
+}
+
+
+Vector2 max_vector_x(Vector2 v1, Vector2 v2)
+{
+    return v1.x > v2.x ? v1 : v2;
+}
+
+
+Vector2 min_vector_y(Vector2 v1, Vector2 v2)
+{
+    return v1.y < v2.y ? v1 : v2;
+}
+
+
+Vector2 max_vector_y(Vector2 v1, Vector2 v2)
+{
+    return v1.y > v2.y ? v1 : v2;
+}
+
+
+void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
+{
+    Vector2 first;
+    Vector2 second;
+    Vector2 third;
+
+    const float min = min_3(p1.y, p2.y, p3.y);
+
+    if (p3.y == min)
+    {
+        first = p3;
+
+        if (p1.y == p2.y)
+        {
+            second = min_vector_x(p1, p2);
+            third = max_vector_x(p1, p2);
+        }
+        else if (p3.x > p1.x)
+        {
+            second = min_vector_y(p1, p2);
+            third = max_vector_y(p1, p2);
+        }
+        else
+        {
+            second = max_vector_y(p1, p2);
+            third = min_vector_y(p1, p2);
+        }
+    }
+    else if (p1.y < p2.y)
+    {
+        first = p1;
+        second = min_vector_x(p2, p3);
+        third = max_vector_x(p2, p3);
+    }
+    else if (p2.y < p1.y)
+    {
+        first = p2;
+        second = min_vector_x(p1, p3);
+        third = max_vector_x(p1, p3);
+    }
+    else // p1.y == p2.y
+    {
+        first = min_vector_x(p1, p2);
+        second = p3;
+        third = max_vector_x(p1, p2);
+    }
+
+    DrawTriangle(first, second, third, color);
+}
+
+
+
+void on_game_render(const struct GameObjects* game_objects, int window_width, int x_ray)
+{
+    const struct Ball* ball = &game_objects->ball;
+    const struct Tail* tail = &game_objects->ball.tail;
+
+    Vector2 ball_p1 = { .x = ball->center.x, .y = ball->center.y - ball->radius };
+    Vector2 ball_p2 = { .x = ball->center.x, .y = ball->center.y + ball->radius };
+
+    Vector2 coll_point;
+    if (CheckCollisionLines(ball_p1, tail->p1, ball_p2, tail->p2, &coll_point))
+    {
+        const Vector2 tmp = ball_p1;
+        ball_p1 = ball_p2;
+        ball_p2 = tmp;
+    }
+
+    static const Color tail_color = { .r = 200, .g = 200, .b = 200, .a = 70 };
+    if (x_ray)
+    {
+        DrawLineV(ball_p1, tail->p1, tail_color);
+        DrawLineV(ball_p2, tail->p2, tail_color);
+        DrawLineV(tail->p1, tail->p3, tail_color);
+        DrawLineV(tail->p2, tail->p3, tail_color);
+    }
+    else
+    {
+        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
+        draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
+        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+    }
+
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
@@ -313,6 +485,12 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
     app->game_objects.ball.center.x = app_transform(app->game_objects.ball.center.x, app->width, new_width);
     app->game_objects.ball.center.y = app_transform(app->game_objects.ball.center.y, app->height, new_height);
     app->game_objects.ball.radius = app_transform(app->game_objects.ball.radius, app->width, new_width);
+    app->game_objects.ball.tail.p1.x = app_transform(app->game_objects.ball.tail.p1.x, app->width, new_width);
+    app->game_objects.ball.tail.p1.y = app_transform(app->game_objects.ball.tail.p1.y, app->height, new_height);
+    app->game_objects.ball.tail.p2.x = app_transform(app->game_objects.ball.tail.p2.x, app->width, new_width);
+    app->game_objects.ball.tail.p2.y = app_transform(app->game_objects.ball.tail.p2.y, app->height, new_height);
+    app->game_objects.ball.tail.p3.x = app_transform(app->game_objects.ball.tail.p3.x, app->width, new_width);
+    app->game_objects.ball.tail.p3.y = app_transform(app->game_objects.ball.tail.p3.y, app->height, new_height);
 
     float current_x = BRICK_PADDING;
     float current_y = 60;
@@ -364,6 +542,7 @@ void app_load_audio(struct Application* app)
 struct Application app_start()
 {
     struct Application app;
+    app.x_ray = 0;
     app.width = 1200;
     app.height = 750;
     app.state = Menu;
@@ -406,26 +585,31 @@ int main()
             on_app_resize(&app, GetScreenWidth(), GetScreenHeight());
         }
 
+        if (IsKeyPressed(KEY_X))
+        {
+            app.x_ray = !app.x_ray;
+        }
+
         switch (app.state)
         {
         case Menu:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
             break;
         case Game:
             app.state = on_game_update(&app, GetFrameTime());
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             break;
         case Break:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Paused");
             break;
         case Success:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You won!");
             break;
         case Failed:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
