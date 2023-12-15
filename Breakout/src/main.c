@@ -60,13 +60,20 @@ struct GameObjects
 };
 
 
+struct ToggleSound
+{
+    Sound sound;
+    int play;
+};
+
+
 struct SoundObjects
 {
-    Sound hit_brick;
-    Sound hit_paddle;
-    Sound failed;
-    Sound success;
-    Sound start;
+    struct ToggleSound hit_brick;
+    struct ToggleSound hit_paddle;
+    struct ToggleSound failed;
+    struct ToggleSound success;
+    struct ToggleSound start;
 };
 
 
@@ -122,16 +129,18 @@ void generate_bricks(struct Brick* bricks, int window_width, int paddle_height)
 }
 
 
-void play_sound(Sound sound)
+void play_sound(struct ToggleSound sound)
 {
-    if (IsSoundPlaying(sound))
+    if (!sound.play) return;
+
+    if (IsSoundPlaying(sound.sound))
     {
-        StopSound(sound);
-        PlaySoundRaylib(sound);
+        StopSound(sound.sound);
+        PlaySoundRaylib(sound.sound);
     }
     else
     {
-        PlaySoundRaylib(sound);
+        PlaySoundRaylib(sound.sound);
     }
 }
 
@@ -198,7 +207,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, Sound hit_sound)
+int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
 {
     const float speed = 500.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -525,11 +534,17 @@ void app_load_audio(struct Application* app)
     Wave w4 = LoadWaveFromMemory(".wav", sg_Game_faile_sound, ARRAY_SIZE(sg_Game_faile_sound));
     Wave w5 = LoadWaveFromMemory(".wav", sg_Game_win_sound,   ARRAY_SIZE(sg_Game_win_sound));
 
-    app->sound_objects.hit_brick  = LoadSoundFromWave(w1);
-    app->sound_objects.hit_paddle = LoadSoundFromWave(w2);
-    app->sound_objects.start      = LoadSoundFromWave(w3);
-    app->sound_objects.failed     = LoadSoundFromWave(w4);
-    app->sound_objects.success    = LoadSoundFromWave(w5);
+    app->sound_objects.hit_brick.sound  = LoadSoundFromWave(w1);
+    app->sound_objects.hit_paddle.sound = LoadSoundFromWave(w2);
+    app->sound_objects.start.sound      = LoadSoundFromWave(w3);
+    app->sound_objects.failed.sound     = LoadSoundFromWave(w4);
+    app->sound_objects.success.sound    = LoadSoundFromWave(w5);
+
+    app->sound_objects.hit_brick.play  = 1;
+    app->sound_objects.hit_paddle.play = 1;
+    app->sound_objects.start.play      = 1;
+    app->sound_objects.failed.play     = 1;
+    app->sound_objects.success.play    = 1;
 
     UnloadWave(w1);
     UnloadWave(w2);
@@ -561,11 +576,11 @@ struct Application app_start()
 
 void app_shutdown(const struct Application* app)
 {
-    UnloadSound(app->sound_objects.success);
-    UnloadSound(app->sound_objects.failed);
-    UnloadSound(app->sound_objects.start);
-    UnloadSound(app->sound_objects.hit_brick);
-    UnloadSound(app->sound_objects.hit_paddle);
+    UnloadSound(app->sound_objects.success.sound);
+    UnloadSound(app->sound_objects.failed.sound);
+    UnloadSound(app->sound_objects.start.sound);
+    UnloadSound(app->sound_objects.hit_brick.sound);
+    UnloadSound(app->sound_objects.hit_paddle.sound);
     CloseAudioDevice();
     TerminateWindow();
 }
@@ -588,6 +603,15 @@ int main()
         if (IsKeyPressed(KEY_X))
         {
             app.x_ray = !app.x_ray;
+        }
+
+        if (IsKeyPressed(KEY_M))
+        {
+            app.sound_objects.hit_brick.play  = !app.sound_objects.hit_brick.play;
+            app.sound_objects.hit_paddle.play = !app.sound_objects.hit_paddle.play;
+            app.sound_objects.start.play      = !app.sound_objects.start.play;
+            app.sound_objects.failed.play     = !app.sound_objects.failed.play;
+            app.sound_objects.success.play    = !app.sound_objects.success.play;
         }
 
         switch (app.state)
