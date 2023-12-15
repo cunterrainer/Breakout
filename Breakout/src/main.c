@@ -207,9 +207,17 @@ int ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
+void ball_move_tail_tip(struct Ball* ball, float speed, float dt)
+{
+    ball->tail.p3.x += ball->prev_direction.x * dt * speed;
+    ball->tail.p3.y += ball->prev_direction.y * dt * speed;
+}
+
+
 void ball_animate_tail(struct Ball* ball, float speed, float dt)
 {
     static const float speed_multiply = 0.9f;
+    speed = speed * speed_multiply;
 
     // p1 is left p2 is right
     // if from upper left to lower right
@@ -218,8 +226,7 @@ void ball_animate_tail(struct Ball* ball, float speed, float dt)
             || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y < ball->tail.p1.y))
         )
     {
-        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
-        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+        ball_move_tail_tip(ball, speed, dt);
     }
     // if from lower left to upper right
     else if ((ball->prev_direction.x > 0 && ball->prev_direction.y < 0)
@@ -227,8 +234,7 @@ void ball_animate_tail(struct Ball* ball, float speed, float dt)
             || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y > ball->tail.p1.y))
         )
     {
-        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
-        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+        ball_move_tail_tip(ball, speed, dt);
     }
     // if from upper right to lower left
     else if ((ball->prev_direction.x < 0 && ball->prev_direction.y > 0)
@@ -236,8 +242,7 @@ void ball_animate_tail(struct Ball* ball, float speed, float dt)
             || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y < ball->tail.p1.y))
         )
     {
-        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
-        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+        ball_move_tail_tip(ball, speed, dt);
     }
     // if from lower right to upper left
     else if ((ball->prev_direction.x < 0 && ball->prev_direction.y < 0)
@@ -245,8 +250,7 @@ void ball_animate_tail(struct Ball* ball, float speed, float dt)
             || (ball->tail.p1.y == ball->tail.p2.y && ball->tail.p3.y > ball->tail.p1.y))
         )
     {
-        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * speed_multiply);
-        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * speed_multiply);
+        ball_move_tail_tip(ball, speed, dt);
     }
     else
     {
