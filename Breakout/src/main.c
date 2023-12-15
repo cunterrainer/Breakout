@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "raylib.h"
 
@@ -87,8 +88,8 @@ struct Application
     int width;
     int height;
     int font_size_menu;
-    int x_ray;
-    int show_fps;
+    bool x_ray;
+    bool show_fps;
     Texture2D volume_on;
     Texture2D volume_off;
 };
@@ -189,7 +190,7 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
 }
 
 
-int ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
+bool ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 {
     for (size_t i = 0; i < NUM_BRICKS; ++i)
     {
@@ -202,10 +203,10 @@ int ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
             ball->prev_direction = ball->direction;
             tail_set_vertical_collision(ball, ball->direction.y > 0);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
-            return 1;
+            return true;
         }
     }
-    return 0;
+    return false;
 }
 
 
@@ -262,7 +263,7 @@ void ball_animate_tail(struct Ball* ball, float dt)
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
+bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
 {
     ball->center.x += ball->direction.x * dt * ball->speed;
     ball->center.y += ball->direction.y * dt * ball->speed;
@@ -302,8 +303,8 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt
         play_sound(hit_sound);
     }
     else if (ball->center.y + ball->radius >= window_size.y)
-        return 0;
-    return 1;
+        return false;
+    return true;
 }
 
 
@@ -471,7 +472,7 @@ void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, V
 }
 
 
-void on_game_render(const struct GameObjects* game_objects, int window_width, int x_ray)
+void on_game_render(const struct GameObjects* game_objects, int window_width, bool x_ray)
 {
     const struct Ball* ball = &game_objects->ball;
     const struct Tail* tail = &game_objects->ball.tail;
@@ -636,11 +637,11 @@ Texture2D load_image(const unsigned char* data, int size)
 struct Application app_start()
 {
     struct Application app;
-    app.x_ray = 0;
-    app.show_fps = 0;
     app.width = 1200;
     app.height = 750;
     app.state = Menu;
+    app.x_ray = false;
+    app.show_fps = false;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
 
