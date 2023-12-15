@@ -134,6 +134,31 @@ void play_sound(Sound sound)
 }
 
 
+void tail_set_vertical_collision(struct Tail* tail, const struct Ball* ball)
+{
+    tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
+    tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
+
+    tail->p1.x = ball->center.x - ball->radius;
+    tail->p1.y = ball->center.y;
+
+    tail->p2.x = ball->center.x + ball->radius;
+    tail->p2.y = ball->center.y;
+}
+
+
+void tail_set_horizontal_collision(struct Tail* tail, const struct Ball* ball)
+{
+    tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
+    tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
+
+    tail->p1.x = ball->center.x;
+    tail->p1.y = ball->center.y - ball->radius;
+
+    tail->p2.x = ball->center.x;
+    tail->p2.y = ball->center.y + ball->radius;
+}
+
 
 Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direction)
 {
@@ -159,15 +184,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks, struct Tai
             //bricks[i].rec.height = 0;
             ++collisions;
 
-            tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-            tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
-
-            tail->p1.x = ball->center.x - ball->radius;
-            tail->p1.y = ball->center.y;
-
-            tail->p2.x = ball->center.x + ball->radius;
-            tail->p2.y = ball->center.y;
-
+            tail_set_vertical_collision(tail, ball);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
             break;
         }
@@ -187,26 +204,12 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct T
 
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
-        tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-        tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
-        
-        tail->p1.x = ball->center.x;
-        tail->p1.y = ball->center.y - ball->radius;
-
-        tail->p2.x = ball->center.x;
-        tail->p2.y = ball->center.y + ball->radius;
+        tail_set_horizontal_collision(tail, ball);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
     else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
     {
-        tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-        tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
-
-        tail->p1.x = ball->center.x - ball->radius;
-        tail->p1.y = ball->center.y;
-
-        tail->p2.x = ball->center.x + ball->radius;
-        tail->p2.y = ball->center.y;
+        tail_set_vertical_collision(tail, ball);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
@@ -223,15 +226,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct T
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
         play_sound(hit_sound);
-
-        tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-        tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
-
-        tail->p1.x = ball->center.x - ball->radius;
-        tail->p1.y = ball->center.y;
-
-        tail->p2.x = ball->center.x + ball->radius;
-        tail->p2.y = ball->center.y;
+        tail_set_vertical_collision(tail, ball);
     }
     else if (ball->center.y + ball->radius >= window_size.y)
         return 0;
