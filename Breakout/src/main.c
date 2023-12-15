@@ -154,10 +154,10 @@ void tail_set_vertical_collision(struct Ball* ball, int from_above)
     ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
     ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
-    ball->tail.p1.x = ball->center.x - ball->radius;
+    ball->tail.p1.x = ball->center.x - ball->radius * 0.5f;
     ball->tail.p1.y = ball->center.y + radius;
 
-    ball->tail.p2.x = ball->center.x + ball->radius;
+    ball->tail.p2.x = ball->center.x + ball->radius * 0.5f;
     ball->tail.p2.y = ball->center.y + radius;
 }
 
@@ -169,10 +169,10 @@ void tail_set_horizontal_collision(struct Ball* ball, int right_wall)
     ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
     ball->tail.p1.x = ball->center.x + radius;
-    ball->tail.p1.y = ball->center.y - ball->radius;
+    ball->tail.p1.y = ball->center.y - ball->radius * 0.5f;
 
     ball->tail.p2.x = ball->center.x + radius;
-    ball->tail.p2.y = ball->center.y + ball->radius;
+    ball->tail.p2.y = ball->center.y + ball->radius * 0.5f;
 }
 
 
