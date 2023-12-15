@@ -259,6 +259,41 @@ void on_game_render(const struct GameObjects* game_objects, int window_width)
 }
 
 
+enum State on_menu_update(const struct Application* app, const char* text)
+{
+    const int text_length = MeasureText(text, app->font_size_menu);
+    const int x_pos = (app->width - text_length) / 2;
+    const int y_pos = (app->height - app->font_size_menu) / 2;
+
+    switch (app->state)
+    {
+    case Menu:
+    case Break:
+        DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
+        {
+            play_sound(app->sound_objects.start);
+            return Game;
+        }
+        if (IsKeyPressed(KEY_R))
+            return Reset;
+        return app->state;
+    case Success:
+        DrawText(text, x_pos, y_pos, app->font_size_menu, GOLD);
+        break;
+    case Failed:
+        DrawText(text, x_pos, y_pos, app->font_size_menu, RED);
+        break;
+    default:
+        break;
+    }
+
+    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE))
+        return Reset;
+    return app->state;
+}
+
+
 float app_transform(float old_value, float old_dimension, float new_dimension)
 {
     return old_value / old_dimension * new_dimension;
@@ -301,41 +336,6 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
     app->font_size_menu = app_transform(app->font_size_menu, MAX(app->width, app->height), MAX(new_width, new_height));
     app->width = new_width;
     app->height = new_height;
-}
-
-
-enum State on_menu_update(const struct Application* app, const char* text)
-{
-    const int text_length = MeasureText(text, app->font_size_menu);
-    const int x_pos = (app->width - text_length) / 2;
-    const int y_pos = (app->height - app->font_size_menu) / 2;
-
-    switch (app->state)
-    {
-    case Menu:
-    case Break:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
-        {
-            play_sound(app->sound_objects.start);
-            return Game;
-        }
-        if (IsKeyPressed(KEY_R))
-            return Reset;
-        return app->state;
-    case Success:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, GOLD);
-        break;
-    case Failed:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, RED);
-        break;
-    default:
-        break;
-    }
-
-    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE))
-        return Reset;
-    return app->state;
 }
 
 
