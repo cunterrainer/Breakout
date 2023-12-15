@@ -78,6 +78,7 @@ struct Application
     int width;
     int height;
     int font_size_menu;
+    int x_ray;
 };
 
 
@@ -329,7 +330,7 @@ Vector2 max_vector_y(Vector2 v1, Vector2 v2)
 }
 
 
-void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
+void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
 {
     Vector2 first;
     Vector2 second;
@@ -376,12 +377,12 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
         third = max_vector_x(p1, p2);
     }
 
-    DrawTriangle(first, second, third, (Color) { 200, 200, 200, 70 });
+    DrawTriangle(first, second, third, color);
 }
 
 
 
-void on_game_render(const struct GameObjects* game_objects, int window_width)
+void on_game_render(const struct GameObjects* game_objects, int window_width, int x_ray)
 {
     const struct Ball* ball = &game_objects->ball;
     const struct Tail* tail = &game_objects->ball.tail;
@@ -397,15 +398,20 @@ void on_game_render(const struct GameObjects* game_objects, int window_width)
         ball_p2 = tmp;
     }
 
-    //DrawLineV(ball_p1, tail->p1, RED);
-    //DrawLineV(ball_p2, tail->p2, YELLOW);
-    //
-    //DrawLineV(game_objects->tail.p1, game_objects->tail.p3, BLUE);
-    //DrawLineV(game_objects->tail.p2, game_objects->tail.p3, BLUE);
-
-    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1);
-    draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2);
-    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3);
+    static const Color tail_color = { .r = 200, .g = 200, .b = 200, .a = 70 };
+    if (x_ray)
+    {
+        DrawLineV(ball_p1, tail->p1, tail_color);
+        DrawLineV(ball_p2, tail->p2, tail_color);
+        DrawLineV(tail->p1, tail->p3, tail_color);
+        DrawLineV(tail->p2, tail->p3, tail_color);
+    }
+    else
+    {
+        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
+        draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
+        draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+    }
 
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
@@ -536,6 +542,7 @@ void app_load_audio(struct Application* app)
 struct Application app_start()
 {
     struct Application app;
+    app.x_ray = 0;
     app.width = 1200;
     app.height = 750;
     app.state = Menu;
@@ -578,26 +585,31 @@ int main()
             on_app_resize(&app, GetScreenWidth(), GetScreenHeight());
         }
 
+        if (IsKeyPressed(KEY_X))
+        {
+            app.x_ray = !app.x_ray;
+        }
+
         switch (app.state)
         {
         case Menu:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
             break;
         case Game:
             app.state = on_game_update(&app, GetFrameTime());
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             break;
         case Break:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Paused");
             break;
         case Success:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You won!");
             break;
         case Failed:
-            on_game_render(&app.game_objects, app.width);
+            on_game_render(&app.game_objects, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
