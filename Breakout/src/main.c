@@ -54,18 +54,24 @@ struct GameObjects
 };
 
 
+struct SoundObjects
+{
+    Sound hit_brick;
+    Sound hit_paddle;
+    Sound failed;
+    Sound success;
+    Sound start;
+};
+
+
 struct Application
 {
     struct GameObjects game_objects;
+    struct SoundObjects sound_objects;
     enum State state;
     int width;
     int height;
     int font_size_menu;
-    Sound sound_hit_brick;
-    Sound sound_hit_paddle;
-    Sound sound_failed;
-    Sound sound_success;
-    Sound sound_start;
 };
 
 
@@ -216,21 +222,21 @@ enum State on_game_update(struct Application* app, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt, app->sound_hit_paddle))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, app->width, app->height, dt, app->sound_objects.hit_paddle))
     {
-        play_sound(app->sound_failed);
+        play_sound(app->sound_objects.failed);
         return Failed;
     }
 
     const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
     if (collision)
     {
-        play_sound(app->sound_hit_brick);
+        play_sound(app->sound_objects.hit_brick);
         app->game_objects.score += collision;
     }
     if (app->game_objects.score == NUM_BRICKS)
     {
-        play_sound(app->sound_success);
+        play_sound(app->sound_objects.success);
         return Success;
     }
     return Game;
@@ -315,7 +321,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
         DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
         if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
         {
-            play_sound(app->sound_start);
+            play_sound(app->sound_objects.start);
             return Game;
         }
         if (IsKeyPressed(KEY_R))
@@ -345,11 +351,11 @@ void app_load_audio(struct Application* app)
     Wave w4 = LoadWaveFromMemory(".wav", sg_Game_faile_sound, ARRAY_SIZE(sg_Game_faile_sound));
     Wave w5 = LoadWaveFromMemory(".wav", sg_Game_win_sound,   ARRAY_SIZE(sg_Game_win_sound));
 
-    app->sound_hit_brick  = LoadSoundFromWave(w1);
-    app->sound_hit_paddle = LoadSoundFromWave(w2);
-    app->sound_start      = LoadSoundFromWave(w3);
-    app->sound_failed     = LoadSoundFromWave(w4);
-    app->sound_success    = LoadSoundFromWave(w5);
+    app->sound_objects.hit_brick  = LoadSoundFromWave(w1);
+    app->sound_objects.hit_paddle = LoadSoundFromWave(w2);
+    app->sound_objects.start      = LoadSoundFromWave(w3);
+    app->sound_objects.failed     = LoadSoundFromWave(w4);
+    app->sound_objects.success    = LoadSoundFromWave(w5);
 
     UnloadWave(w1);
     UnloadWave(w2);
@@ -359,7 +365,7 @@ void app_load_audio(struct Application* app)
 }
 
 
-int main()
+struct Application app_start()
 {
     struct Application app;
     app.width = 1200;
@@ -367,12 +373,32 @@ int main()
     app.state = Menu;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
-    
+
+
     InitAudioDevice();
     app_load_audio(&app);
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
+    return app;
+}
+
+
+void app_shutdown(const struct Application* app)
+{
+    UnloadSound(app->sound_objects.success);
+    UnloadSound(app->sound_objects.failed);
+    UnloadSound(app->sound_objects.start);
+    UnloadSound(app->sound_objects.hit_brick);
+    UnloadSound(app->sound_objects.hit_paddle);
+    CloseAudioDevice();
+    TerminateWindow();
+}
+
+
+int main()
+{
+    struct Application app = app_start();
 
     while (!WindowShouldClose())
     {
@@ -416,11 +442,5 @@ int main()
 
         EndDrawing();
     }
-    UnloadSound(app.sound_success);
-    UnloadSound(app.sound_failed);
-    UnloadSound(app.sound_start);
-    UnloadSound(app.sound_hit_brick);
-    UnloadSound(app.sound_hit_paddle);
-    CloseAudioDevice();
-    TerminateWindow();
+    app_shutdown(&app);
 }
