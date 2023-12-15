@@ -135,28 +135,30 @@ void play_sound(Sound sound)
 }
 
 
-void tail_set_vertical_collision(struct Ball* ball)
+void tail_set_vertical_collision(struct Ball* ball, int from_above)
 {
+    const float radius = from_above ? ball->radius : -ball->radius;
     ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
     ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
     ball->tail.p1.x = ball->center.x - ball->radius;
-    ball->tail.p1.y = ball->center.y;
+    ball->tail.p1.y = ball->center.y + radius;
 
     ball->tail.p2.x = ball->center.x + ball->radius;
-    ball->tail.p2.y = ball->center.y;
+    ball->tail.p2.y = ball->center.y + radius;
 }
 
 
-void tail_set_horizontal_collision(struct Ball* ball)
+void tail_set_horizontal_collision(struct Ball* ball, int right_wall)
 {
+    const float radius = right_wall ? ball->radius : -ball->radius;
     ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
     ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
-    ball->tail.p1.x = ball->center.x;
+    ball->tail.p1.x = ball->center.x + radius;
     ball->tail.p1.y = ball->center.y - ball->radius;
 
-    ball->tail.p2.x = ball->center.x;
+    ball->tail.p2.x = ball->center.x + radius;
     ball->tail.p2.y = ball->center.y + ball->radius;
 }
 
@@ -186,7 +188,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
             ++collisions;
 
             ball->prev_direction = ball->direction;
-            tail_set_vertical_collision(ball);
+            tail_set_vertical_collision(ball, ball->direction.y > 0);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
             break;
         }
@@ -213,18 +215,19 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
         ball->prev_direction = ball->direction;
-        tail_set_horizontal_collision(ball);
+        tail_set_horizontal_collision(ball, ball->direction.x > 0);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0)
     {
         ball->prev_direction = ball->direction;
-        tail_set_vertical_collision(ball);
+        tail_set_vertical_collision(ball, 0);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
     {
         ball->prev_direction = ball->direction;
+        tail_set_vertical_collision(ball, ball->direction.y > 0);
         // if you hit the ball in the first 25 % the ball goes back the direction reverses
         // if going from left to right                                                    if going from right to left
         if ((ball->direction.x > 0 && ball->center.x < paddle.x + paddle.width * 0.25) || (ball->direction.x < 0 && ball->center.x > paddle.x + paddle.width * 0.75))
@@ -237,7 +240,6 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
         play_sound(hit_sound);
-        tail_set_vertical_collision(ball);
     }
     else if (ball->center.y + ball->radius >= window_size.y)
         return 0;
