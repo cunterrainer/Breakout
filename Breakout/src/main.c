@@ -278,7 +278,7 @@ enum State on_game_update(struct Application* app, float dt)
 {
     static float prev_mouse_pos = 0.f;
 
-    if (IsKeyDown(KEY_ESCAPE))
+    if (IsKeyPressed(KEY_ESCAPE))
         return Break;
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
@@ -474,7 +474,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
     case Menu:
     case Break:
         DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
-        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
+        if (IsKeyDown(KEY_A) || IsKeyDown(KEY_D) || IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) /* pressed instead of down because otherwise you'd always jump back in the game after pressing space when failed or finished */)
         {
             play_sound(app->sound_objects.start);
             return Game;
