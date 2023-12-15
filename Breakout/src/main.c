@@ -187,9 +187,8 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
 }
 
 
-size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
+int ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 {
-    size_t collisions = 0;
     for (size_t i = 0; i < NUM_BRICKS; ++i)
     {
         if (bricks[i].rec.x > 0 && CheckCollisionCircleRec(ball->center, ball->radius, bricks[i].rec))
@@ -197,16 +196,14 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
             bricks[i].rec.x = -20;
             bricks[i].rec.y = -20;
             bricks[i].rec.width = 0;
-            //bricks[i].rec.height = 0;
-            ++collisions;
 
             ball->prev_direction = ball->direction;
             tail_set_vertical_collision(ball, ball->direction.y > 0);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
-            break;
+            return 1;
         }
     }
-    return collisions;
+    return 0;
 }
 
 
@@ -303,11 +300,10 @@ enum State on_game_update(struct Application* app, float dt)
         return Failed;
     }
 
-    const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
-    if (collision)
+    if (ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks))
     {
         play_sound(app->sound_objects.hit_brick);
-        app->game_objects.score += collision;
+        app->game_objects.score++;
     }
     if (app->game_objects.score == NUM_BRICKS)
     {
