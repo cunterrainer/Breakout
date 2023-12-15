@@ -328,10 +328,10 @@ enum State on_game_update(struct Application* app, float dt)
         return Break;
 
     if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
-        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 800 * dt);
+        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 1250 * dt);
     }
     if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
-        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 800 * dt, app->width - app->game_objects.paddle.width);
+        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 1250 * dt, app->width - app->game_objects.paddle.width);
     }
 
     const float mouse_pos = GetMousePosition().x;
