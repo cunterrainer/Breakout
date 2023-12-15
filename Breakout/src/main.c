@@ -312,8 +312,8 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
     objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 }, { 0, 0 } };
-    objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - objects.ball.radius, objects.ball.center.y };
-    objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + objects.ball.radius, objects.ball.center.y };
+    objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - 7.f, objects.paddle.y };
+    objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + 7.f, objects.paddle.y };
     objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
     generate_bricks(objects.bricks, window_width, paddle_height);
     return objects;
