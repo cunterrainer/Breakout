@@ -327,7 +327,7 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
     Vector2 second;
     Vector2 third;
 
-    float min = min_3(p1.y, p2.y, p3.y);
+    const float min = min_3(p1.y, p2.y, p3.y);
 
     if (p3.y == min)
     {
@@ -384,7 +384,7 @@ void on_game_render(const struct GameObjects* game_objects, int window_width)
     Vector2 coll_point;
     if (CheckCollisionLines(ball_p1, tail->p1, ball_p2, tail->p2, &coll_point))
     {
-        Vector2 tmp = ball_p1;
+        const Vector2 tmp = ball_p1;
         ball_p1 = ball_p2;
         ball_p2 = tmp;
     }
