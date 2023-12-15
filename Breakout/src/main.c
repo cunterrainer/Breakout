@@ -33,15 +33,6 @@ struct Brick
 };
 
 
-struct Ball
-{
-    Vector2 center;
-    float radius;
-    Vector2 direction;
-    Vector2 prev_direction;
-};
-
-
 struct Tail
 {
     Vector2 p1;
@@ -50,12 +41,21 @@ struct Tail
 };
 
 
+struct Ball
+{
+    Vector2 center;
+    float radius;
+    Vector2 direction;
+    Vector2 prev_direction;
+    struct Tail tail;
+};
+
+
 struct GameObjects
 {
     struct Brick bricks[NUM_BRICKS];
     Rectangle paddle;
     struct Ball ball;
-    struct Tail tail;
     size_t score;
 };
 
@@ -135,29 +135,29 @@ void play_sound(Sound sound)
 }
 
 
-void tail_set_vertical_collision(struct Tail* tail, const struct Ball* ball)
+void tail_set_vertical_collision(struct Ball* ball)
 {
-    tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-    tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
+    ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
+    ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
-    tail->p1.x = ball->center.x - ball->radius;
-    tail->p1.y = ball->center.y;
+    ball->tail.p1.x = ball->center.x - ball->radius;
+    ball->tail.p1.y = ball->center.y;
 
-    tail->p2.x = ball->center.x + ball->radius;
-    tail->p2.y = ball->center.y;
+    ball->tail.p2.x = ball->center.x + ball->radius;
+    ball->tail.p2.y = ball->center.y;
 }
 
 
-void tail_set_horizontal_collision(struct Tail* tail, const struct Ball* ball)
+void tail_set_horizontal_collision(struct Ball* ball)
 {
-    tail->p3.x = (tail->p1.x + tail->p2.x) / 2.f;
-    tail->p3.y = (tail->p1.y + tail->p2.y) / 2.f;
+    ball->tail.p3.x = (ball->tail.p1.x + ball->tail.p2.x) / 2.f;
+    ball->tail.p3.y = (ball->tail.p1.y + ball->tail.p2.y) / 2.f;
 
-    tail->p1.x = ball->center.x;
-    tail->p1.y = ball->center.y - ball->radius;
+    ball->tail.p1.x = ball->center.x;
+    ball->tail.p1.y = ball->center.y - ball->radius;
 
-    tail->p2.x = ball->center.x;
-    tail->p2.y = ball->center.y + ball->radius;
+    ball->tail.p2.x = ball->center.x;
+    ball->tail.p2.y = ball->center.y + ball->radius;
 }
 
 
@@ -172,7 +172,7 @@ Vector2 ball_calculate_reflected_direction(Vector2 normal, Vector2 current_direc
 }
 
 
-size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks, struct Tail* tail)
+size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 {
     size_t collisions = 0;
     for (size_t i = 0; i < NUM_BRICKS; ++i)
@@ -186,7 +186,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks, struct Tai
             ++collisions;
 
             ball->prev_direction = ball->direction;
-            tail_set_vertical_collision(tail, ball);
+            tail_set_vertical_collision(ball);
             ball->direction = ball_calculate_reflected_direction((Vector2) { 0, 1 }, ball->direction);
             break;
         }
@@ -195,7 +195,7 @@ size_t ball_bricks_collision(struct Ball* ball, struct Brick* bricks, struct Tai
 }
 
 
-int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct Tail* tail, float dt, Sound hit_sound)
+int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, Sound hit_sound)
 {
     const float speed = 250.f;
     ball->center.x += ball->direction.x * dt * speed;
@@ -204,22 +204,22 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct T
     const Vector2 normal_hor = { .x = 1, .y = 0 };
     const Vector2 normal_ver = { .x = 0, .y = 1 };
 
-    if (!CheckCollisionPointLine(tail->p3, tail->p1, tail->p2, 20))
+    if (!CheckCollisionPointLine(ball->tail.p3, ball->tail.p1, ball->tail.p2, 20))
     {
-        tail->p3.x += ball->prev_direction.x * dt * (speed * 0.9f);
-        tail->p3.y += ball->prev_direction.y * dt * (speed * 0.9f);
+        ball->tail.p3.x += ball->prev_direction.x * dt * (speed * 0.9f);
+        ball->tail.p3.y += ball->prev_direction.y * dt * (speed * 0.9f);
     }
 
     if ((ball->center.x + ball->radius >= window_size.x && ball->direction.x > 0) || (ball->center.x - ball->radius <= 0 && ball->direction.x < 0))
     {
         ball->prev_direction = ball->direction;
-        tail_set_horizontal_collision(tail, ball);
+        tail_set_horizontal_collision(ball);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
     else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_height && ball->direction.y > 0)
     {
         ball->prev_direction = ball->direction;
-        tail_set_vertical_collision(tail, ball);
+        tail_set_vertical_collision(ball);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
     else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
@@ -237,7 +237,7 @@ int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, struct T
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
         play_sound(hit_sound);
-        tail_set_vertical_collision(tail, ball);
+        tail_set_vertical_collision(ball);
     }
     else if (ball->center.y + ball->radius >= window_size.y)
         return 0;
@@ -251,9 +251,9 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
     objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, { 1.4f, -1 }, { 0, 0 } };
-    objects.tail.p1 = (Vector2) { objects.ball.center.x - objects.ball.radius, objects.ball.center.y };
-    objects.tail.p2 = (Vector2){ objects.ball.center.x + objects.ball.radius, objects.ball.center.y };
-    objects.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
+    objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - objects.ball.radius, objects.ball.center.y };
+    objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + objects.ball.radius, objects.ball.center.y };
+    objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
     generate_bricks(objects.bricks, window_width, paddle_height);
     return objects;
 }
@@ -282,13 +282,13 @@ enum State on_game_update(struct Application* app, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, &app->game_objects.tail, dt, app->sound_objects.hit_paddle))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle))
     {
         play_sound(app->sound_objects.failed);
         return Failed;
     }
 
-    const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks, &app->game_objects.tail);
+    const size_t collision = ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks);
     if (collision)
     {
         play_sound(app->sound_objects.hit_brick);
@@ -382,7 +382,7 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3)
 void on_game_render(const struct GameObjects* game_objects, int window_width)
 {
     const struct Ball* ball = &game_objects->ball;
-    const struct Tail* tail = &game_objects->tail;
+    const struct Tail* tail = &game_objects->ball.tail;
 
     Vector2 ball_p1 = { .x = ball->center.x, .y = ball->center.y - ball->radius };
     Vector2 ball_p2 = { .x = ball->center.x, .y = ball->center.y + ball->radius };
@@ -401,9 +401,9 @@ void on_game_render(const struct GameObjects* game_objects, int window_width)
     //DrawLineV(game_objects->tail.p1, game_objects->tail.p3, BLUE);
     //DrawLineV(game_objects->tail.p2, game_objects->tail.p3, BLUE);
 
-    draw_triangle(game_objects->tail.p1, game_objects->tail.p2, ball_p1);
-    draw_triangle(ball_p1, ball_p2, game_objects->tail.p2);
-    draw_triangle(game_objects->tail.p1, game_objects->tail.p2, game_objects->tail.p3);
+    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1);
+    draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2);
+    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3);
 
     DrawRectangleRec(game_objects->paddle, RED);
     DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
