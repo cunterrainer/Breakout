@@ -1,7 +1,7 @@
 # Breakout
 Welcome to Breakout, a classic arcade game! This version reintroduces the excitement of breaking bricks and maneuvering a paddle to keep the ball in play. Get ready for a challenging experience with enhanced gameplay mechanics.
 
-![image info](./docs/preview.PNG)
+![image info](./docs/preview.png)
 
 # Controls
 ## Keyboard
