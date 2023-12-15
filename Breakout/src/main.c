@@ -3,6 +3,7 @@
 #include "raylib.h"
 
 #include "sounds.h"
+#include "images.h"
 #include "winmain.h"
 
 #define BRICKS_HOR    10 // num of horizontal bricks
@@ -86,6 +87,8 @@ struct Application
     int height;
     int font_size_menu;
     int x_ray;
+    Texture2D volume_on;
+    Texture2D volume_off;
 };
 
 
@@ -446,6 +449,8 @@ enum State on_menu_update(const struct Application* app, const char* text)
     const int x_pos = (app->width - text_length) / 2;
     const int y_pos = (app->height - app->font_size_menu) / 2;
 
+    DrawTextureEx(app->sound_objects.start.play ? app->volume_on : app->volume_off, (Vector2) { app->width - 70.f, 10 }, 0, 0.08f, WHITE);
+
     switch (app->state)
     {
     case Menu:
@@ -554,6 +559,15 @@ void app_load_audio(struct Application* app)
 }
 
 
+Texture2D load_image(const unsigned char* data, int size)
+{
+    Image img = LoadImageFromMemory(".png", data, size);
+    Texture2D texture = LoadTextureFromImage(img);
+    UnloadImage(img);
+    return texture;
+}
+
+
 struct Application app_start()
 {
     struct Application app;
@@ -564,18 +578,22 @@ struct Application app_start()
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
 
-
     InitAudioDevice();
-    app_load_audio(&app);
     InitWindow(app.width, app.height, "Breakout");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
     SetExitKey(KEY_NULL);
+
+    app_load_audio(&app);
+    app.volume_on = load_image(sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
+    app.volume_off = load_image(sg_Volume_off_image, ARRAY_SIZE(sg_Volume_off_image));
     return app;
 }
 
 
 void app_shutdown(const struct Application* app)
 {
+    UnloadTexture(app->volume_on);
+    UnloadTexture(app->volume_off);
     UnloadSound(app->sound_objects.success.sound);
     UnloadSound(app->sound_objects.failed.sound);
     UnloadSound(app->sound_objects.start.sound);
