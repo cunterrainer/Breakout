@@ -18,9 +18,10 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **B:** Show game stats (wins, fails, ball speed).
 - **I:** Toggle increment ball speed when scored.
 - **F:** Show FPS.
+- **Q:** Limit FPS.
 - **F3:** Show controlls
 - **ESC:** Pause/resume the game.
-- **. or ,:** Increase/Decrease fps limit (if limit = 0, there is no limit).
+- **. or ,:** Increase/Decrease fps limit.
 - **W/A or Up/Down:** Increase/Decrease the ball's speed.
 
 ## Controller
