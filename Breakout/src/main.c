@@ -611,7 +611,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
     const int x_pos = (app->width - text_length) / 2;
     const int y_pos = (app->height - app->font_size_menu) / 2;
 
-    DrawTextureEx(app->sound_objects.start.play ? app->volume_on : app->volume_off, (Vector2) { app->width - 70.f, 10 }, 0, 0.08f, WHITE);
+    DrawTextureEx(app->sound_objects.start.play ? app->volume_on : app->volume_off, (Vector2) { 20.f, 10 }, 0, 0.08f, WHITE);
 
     switch (app->state)
     {
