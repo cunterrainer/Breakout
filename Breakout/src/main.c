@@ -70,7 +70,7 @@ struct GameSettings
 {
     bool make_bottom_hitbox;
     bool paddle_has_hitbox;
-    bool show_ball_speed;
+    bool show_stats;
     bool increase_ball_speed;
     bool auto_restart;
     bool auto_move;
@@ -538,7 +538,7 @@ void on_game_render(const struct Application* app)
 
     DrawText(score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
 
-    if (app->game_settings.show_ball_speed)
+    if (app->game_settings.show_stats)
     {
         const char* ball_speed_str = TextFormat("W: %zu F: %zu %zu", app->wins, app->failes, (size_t)app->game_objects.ball.speed);
         const int speed_length = MeasureText(ball_speed_str, score_font_size);
@@ -579,7 +579,7 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(U) Auto restart after success or failure", app->game_settings.auto_restart ? GREEN : RED, false);
     menu_render_controll(font_size, "(G) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
     menu_render_controll(font_size, "(P) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
-    menu_render_controll(font_size, "(B) Show the game stats (wins, fails, ball speed)", app->game_settings.show_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(B) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
     menu_render_controll(font_size, "(I) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
     menu_render_controll(font_size, "(F) Show fps", app->show_fps ? GREEN : RED, false);
     menu_render_controll(font_size, "(M) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
@@ -594,7 +594,7 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
 
     menu_render_controll(font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
-    menu_render_controll(font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
     menu_render_controll(font_size, "(R1) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
     menu_render_controll(font_size, "(SHARE) Show fps", app->show_fps ? GREEN : RED, false);
     menu_render_controll(font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
@@ -742,7 +742,7 @@ struct Application app_start()
     app.frame_rate = 60;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
-    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true, .auto_restart = false, .auto_move = false };
+    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_stats = false, .increase_ball_speed = true, .auto_restart = false, .auto_move = false };
 
     InitAudioDevice();
     InitWindow(app.width, app.height, "Breakout");
@@ -811,7 +811,7 @@ void on_app_key_input(struct Application* app)
 
     if (IsKeyPressed(KEY_B) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1))
     {
-        app->game_settings.show_ball_speed = !app->game_settings.show_ball_speed;
+        app->game_settings.show_stats = !app->game_settings.show_stats;
     }
 
     if (IsKeyPressed(KEY_I) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1))
