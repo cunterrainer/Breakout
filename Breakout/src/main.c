@@ -109,6 +109,7 @@ struct Application
     size_t failes;
     bool x_ray;
     bool show_fps;
+    bool limit_fps;
     Texture2D volume_on;
     Texture2D volume_off;
 };
@@ -571,17 +572,18 @@ enum State menu_show_controlls(const struct Application* app)
     DrawRectangle(app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
     DrawRectangle(0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
 
-    const int font_size = (app->height - 10) / 32;
+    const int font_size = (app->height - 10) / 33;
     menu_render_controll(font_size, "Keyboard", WHITE, false);
     menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
     menu_render_controll(font_size, "(W|A|Up|Down) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
-    menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit (if limit = 0, there is no limit)", WHITE, false);
     menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
+    menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit", WHITE, false);
     menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
     menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails", WHITE, false);
 
+    menu_render_controll(font_size, TextFormat("(Q) Limit fps (%d)", app->frame_rate), app->limit_fps ? GREEN : RED, false);
     menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
     menu_render_controll(font_size, "(O) Auto move the paddle", app->game_settings.auto_move ? GREEN : RED, false);
     menu_render_controll(font_size, "(U) Auto restart after success or failure", app->game_settings.auto_restart ? GREEN : RED, false);
@@ -748,6 +750,7 @@ struct Application app_start()
     app.state = Menu;
     app.x_ray = false;
     app.show_fps = false;
+    app.limit_fps = false;
     app.frame_rate = 60;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
@@ -838,6 +841,12 @@ void on_app_key_input(struct Application* app)
         app->game_settings.auto_restart = !app->game_settings.auto_restart;
     }
 
+    if (IsKeyPressed(KEY_Q))
+    {
+        app->limit_fps = !app->limit_fps;
+        SetTargetFPS(app->limit_fps ? app->frame_rate : 0);
+    }
+
     if (KEY_REPEAT(KEY_PERIOD))
     {
         app->frame_rate += 1;
@@ -847,7 +856,7 @@ void on_app_key_input(struct Application* app)
     if (KEY_REPEAT(KEY_COMMA))
     {
         app->frame_rate -= 1;
-        app->frame_rate = MAX(app->frame_rate, 0);
+        app->frame_rate = MAX(app->frame_rate, 1);
         SetTargetFPS(app->frame_rate);
     }
 
