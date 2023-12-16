@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdbool.h>
 
 #include "raylib.h"
@@ -7,10 +7,11 @@
 #include "images.h"
 #include "winmain.h"
 
-#define BRICKS_HOR    10 // num of horizontal bricks
-#define BRICKS_VER    7  // num of vertical bricks
-#define NUM_BRICKS    BRICKS_HOR * BRICKS_VER
-#define BRICK_PADDING 5
+#define BRICKS_HOR     10 // num of horizontal bricks
+#define BRICKS_VER     7  // num of vertical bricks
+#define NUM_BRICKS     BRICKS_HOR * BRICKS_VER
+#define BRICK_PADDING  5
+#define BRICK_Y_OFFSET 60
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -134,7 +135,7 @@ void generate_bricks(struct Brick* bricks, int window_width, int paddle_height)
     const Color colors[BRICKS_VER] = { RED, ORANGE, YELLOW, GREEN, BLUE, PURPLE, SKYBLUE };
 
     float current_x = BRICK_PADDING;
-    float current_y = 60;
+    float current_y = BRICK_Y_OFFSET;
     for (size_t i = 0; i < NUM_BRICKS; ++i)
     {
         bricks[i].rec.x = current_x;
@@ -548,6 +549,63 @@ void on_game_render(const struct Application* app)
 }
 
 
+void menu_render_controll(int font_size, const char* text, Color color, bool reset)
+{
+    static int y_pos = 10;
+    DrawText(text, 10, y_pos, font_size, color);
+    y_pos += font_size;
+    if (reset) y_pos = 10;
+}
+
+
+enum State menu_show_controlls(const struct Application* app)
+{
+    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
+        return Break;
+
+    DrawRectangle(app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
+    DrawRectangle(0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
+
+    const int font_size = (app->height - 10) / 31;
+    menu_render_controll(font_size, "Keyboard", WHITE, false);
+    menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
+    menu_render_controll(font_size, "(W|A|Up|Down) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
+    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
+    menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
+    menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit (if limit = 0, there is no limit)", WHITE, false);
+    menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails", WHITE, false);
+
+    menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
+    menu_render_controll(font_size, "(O) Auto move the paddle", app->game_settings.auto_move ? GREEN : RED, false);
+    menu_render_controll(font_size, "(U) Auto restart after success or failure", app->game_settings.auto_restart ? GREEN : RED, false);
+    menu_render_controll(font_size, "(G) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
+    menu_render_controll(font_size, "(P) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
+    menu_render_controll(font_size, "(B) Show the game stats (wins, fails, ball speed)", app->game_settings.show_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(I) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(F) Show fps", app->show_fps ? GREEN : RED, false);
+    menu_render_controll(font_size, "(M) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
+
+
+    menu_render_controll(font_size, "", WHITE, false);
+    menu_render_controll(font_size, "Controller (PS4 layout as example)", WHITE, false);
+    menu_render_controll(font_size, "(DPAD or Left stick) Controll the paddle", WHITE, false);
+    menu_render_controll(font_size, "(DPAD Up|Down) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(font_size, "(X) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
+    menu_render_controll(font_size, "(/\\) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
+    menu_render_controll(font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
+
+    menu_render_controll(font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
+    menu_render_controll(font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(R1) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
+    menu_render_controll(font_size, "(SHARE) Show fps", app->show_fps ? GREEN : RED, false);
+    menu_render_controll(font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
+    menu_render_controll(font_size, "(Right Stick pressed) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
+    menu_render_controll(font_size, "(Left Stick pressed) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, true);
+    return app->state;
+}
+
+
 enum State on_menu_update(const struct Application* app, const char* text)
 {
     const int text_length = MeasureText(text, app->font_size_menu);
@@ -909,7 +967,8 @@ int main()
                 app.state = Menu;
             break;
         case Controlls:
-            app.state = app_show_controlls(&app);
+            on_game_render(&app); // render the game to see stats like the ball speed etc.
+            app.state = menu_show_controlls(&app);
             break;
         default:
             break;
