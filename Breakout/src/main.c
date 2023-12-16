@@ -916,10 +916,7 @@ int main()
             break;
         case Reset:
             app.game_objects = game_objects_init(app.width, app.height, 230, 30, app.game_objects.ball.speed);
-            if (app.game_settings.auto_restart)
-                app.state = Game;
-            else
-                app.state = Menu;
+            app.state = app.game_settings.auto_restart ? Game : Menu;
             break;
         case ResetAll:
             app.wins = 0;
