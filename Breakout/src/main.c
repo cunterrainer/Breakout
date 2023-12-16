@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 
+#include "qrl.h"
 #include "sounds.h"
 #include "images.h"
 #include "winmain.h"
@@ -97,6 +98,7 @@ struct SoundObjects
 
 struct Application
 {
+    struct QLearning qrl_model;
     struct GameObjects game_objects;
     struct GameSettings game_settings;
     struct SoundObjects sound_objects;
@@ -115,10 +117,10 @@ struct Application
 };
 
 
-float max_3(float a, float b, float c)
-{
-    return a > b ? (a > c ? a : c) : (b > c ? b : c);
-}
+//float max_3(float a, float b, float c)
+//{
+//    return a > b ? (a > c ? a : c) : (b > c ? b : c);
+//}
 
 
 float min_3(float a, float b, float c)
@@ -283,7 +285,7 @@ void ball_animate_tail(struct Ball* ball, float dt)
 }
 
 
-bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound, struct GameSettings settings)
+int ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound, struct GameSettings settings)
 {
     ball->center.x += ball->direction.x * dt * ball->speed;
     ball->center.y += ball->direction.y * dt * ball->speed;
@@ -321,10 +323,11 @@ bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float d
             ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
         }
         play_sound(hit_sound);
+        return 10;
     }
     else if (!settings.make_bottom_hitbox && ball->center.y + ball->radius >= window_size.y)
-        return false;
-    return true;
+        return 0;
+    return 1;
 }
 
 
@@ -346,6 +349,11 @@ enum State on_game_update(struct Application* app, float dt)
 {
     static float prev_mouse_pos = 0.f;
 
+    int binWidth = app->width / BALL_POS_BINS;
+    int prev_ball = (app->game_objects.ball.center.x) / binWidth;
+    int prev_pad = app->game_objects.paddle.x / binWidth;
+    int move = chooseAction(&app->qrl_model, prev_ball, prev_pad);
+
     if (IsKeyPressed(KEY_L))
         return ResetAll;
 
@@ -355,31 +363,48 @@ enum State on_game_update(struct Application* app, float dt)
     if (IsKeyPressed(KEY_ESCAPE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
-    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0)
+    if (move == 0 || IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0)
     {
-        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 1250 * dt);
+        // 1250
+        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 5000 * dt);
+    }
+    
+    if (move == 1 || IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0)
+    {
+        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 5000 * dt, app->width - app->game_objects.paddle.width);
     }
 
-    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0)
+    //const float mouse_pos = GetMousePosition().x;
+    //if (prev_mouse_pos != mouse_pos)
+    //{
+    //    app->game_objects.paddle.x = mouse_pos - app->game_objects.paddle.width / 2;
+    //    app->game_objects.paddle.x = MIN(app->game_objects.paddle.x, app->width - app->game_objects.paddle.width);
+    //    app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x);
+    //    prev_mouse_pos = mouse_pos;
+    //}
+
+    const int ball_move_v = ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2) { app->width, app->height }, dt, app->sound_objects.hit_paddle, app->game_settings);
+
+    if (move == 0 && app->game_objects.ball.center.x < app->game_objects.paddle.x + app->game_objects.paddle.width)
     {
-        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 1250 * dt, app->width - app->game_objects.paddle.width);
+        updateQValue(&app->qrl_model, prev_ball, prev_pad, move, app->game_objects.ball.center.x / binWidth, app->game_objects.paddle.x / binWidth, 1);
+    }
+    else if (move == 1 && app->game_objects.ball.center.x > app->game_objects.paddle.x)
+    {
+        updateQValue(&app->qrl_model, prev_ball, prev_pad, move, app->game_objects.ball.center.x / binWidth, app->game_objects.paddle.x / binWidth, 1);
+    }
+    else
+    {
+        updateQValue(&app->qrl_model, prev_ball, prev_pad, move, app->game_objects.ball.center.x / binWidth, app->game_objects.paddle.x / binWidth, -1);
     }
 
-    const float mouse_pos = GetMousePosition().x;
-    if (prev_mouse_pos != mouse_pos)
-    {
-        app->game_objects.paddle.x = mouse_pos - app->game_objects.paddle.width / 2;
-        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x, app->width - app->game_objects.paddle.width);
-        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x);
-        prev_mouse_pos = mouse_pos;
-    }
-
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle, app->game_settings))
+    if (!ball_move_v)
     {
         app->failes++;
         play_sound(app->sound_objects.failed);
         return Failed;
     }
+
 
     if (app->game_settings.auto_move)
     {
@@ -395,6 +420,7 @@ enum State on_game_update(struct Application* app, float dt)
         if (app->game_settings.increase_ball_speed)
             app->game_objects.ball.speed += 6.f;
     }
+
     if (app->game_objects.score == NUM_BRICKS)
     {
         app->wins++;
@@ -513,6 +539,12 @@ void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, V
 
 void on_game_render(const struct Application* app)
 {
+    const int box_size = app->width / BALL_POS_BINS;
+    for (int i = 1; i < BALL_POS_BINS; ++i)
+    {
+        DrawLine(i * box_size, 0, i * box_size, app->height, LIGHTGRAY);
+    }
+
     const struct Ball* ball = &app->game_objects.ball;
     const struct Tail* tail = &app->game_objects.ball.tail;
 
@@ -549,6 +581,7 @@ void on_game_render(const struct Application* app)
         const char* ball_speed_str = TextFormat("W: %zu F: %zu %zu", app->wins, app->failes, (size_t)app->game_objects.ball.speed);
         const int speed_length = MeasureText(ball_speed_str, score_font_size);
         DrawText(ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
+        //DrawText(TextFormat("%d", app->qrl_model.times), 10, 10, score_font_size, GRAY);
     }
 }
 
@@ -751,6 +784,7 @@ struct Application app_start()
     app.limit_fps = false;
     app.frame_rate = 60;
     app.font_size_menu = 90;
+    app.qrl_model = qrl_init();
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
     app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_stats = false, .increase_ball_speed = true, .auto_restart = false, .auto_move = false };
 
@@ -892,6 +926,11 @@ void on_app_key_input(struct Application* app)
     {
         app->game_objects.ball.speed -= 10.f;
         app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 1);
+    }
+
+    if (IsKeyPressed(KEY_ZERO))
+    {
+        printQTable(&app->qrl_model);
     }
 }
 
