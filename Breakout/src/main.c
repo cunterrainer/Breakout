@@ -573,7 +573,7 @@ enum State menu_show_controlls(const struct Application* app)
     const int font_size = (app->height - 10) / 33;
     menu_render_controll(font_size, "Keyboard", WHITE, false);
     menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
-    menu_render_controll(font_size, "(W|A|Up|Down) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(font_size, "(W|A|Up|Down|1|2) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
     menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
@@ -858,10 +858,22 @@ void on_app_key_input(struct Application* app)
         SetTargetFPS(app->frame_rate);
     }
 
+    if (IsKeyDown(KEY_TWO))
+    {
+        app->game_objects.ball.speed += 100.f;
+        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 1000000000);
+    }
+
+    if (IsKeyDown(KEY_ONE))
+    {
+        app->game_objects.ball.speed -= 100.f;
+        app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 1);
+    }
+
     if (KEY_REPEAT(KEY_W))
     {
         app->game_objects.ball.speed += 100.f;
-        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 10000000);
+        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 1000000000);
     }
 
     if (KEY_REPEAT(KEY_S))
