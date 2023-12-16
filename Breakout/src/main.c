@@ -791,16 +791,28 @@ void on_app_key_input(struct Application* app)
         app->game_settings.increase_ball_speed = !app->game_settings.increase_ball_speed;
     }
 
-    if (KEY_REPEAT(KEY_W) || KEY_REPEAT(KEY_UP) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
+    if (KEY_REPEAT(KEY_W))
     {
-        app->game_objects.ball.speed += 10.f;
-        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 100000);
+        app->game_objects.ball.speed += 100.f;
+        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 10000000);
     }
 
-    if (KEY_REPEAT(KEY_S) || KEY_REPEAT(KEY_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN))
+    if (KEY_REPEAT(KEY_S))
+    {
+        app->game_objects.ball.speed -= 100.f;
+        app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 1);
+    }
+
+    if (KEY_REPEAT(KEY_UP) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
+    {
+        app->game_objects.ball.speed += 10.f;
+        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 10000000);
+    }
+
+    if (KEY_REPEAT(KEY_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN))
     {
         app->game_objects.ball.speed -= 10.f;
-        app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 0);
+        app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 1);
     }
 }
 
