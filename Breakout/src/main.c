@@ -345,6 +345,12 @@ enum State on_game_update(struct Application* app, float dt)
 {
     static float prev_mouse_pos = 0.f;
 
+    if (IsKeyPressed(KEY_L))
+        return ResetAll;
+
+    if (IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
+        return Reset;
+
     if (IsKeyPressed(KEY_ESCAPE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
