@@ -290,7 +290,7 @@ bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float d
         tail_set_horizontal_collision(ball, ball->direction.x > 0);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0 || (settings.make_bottom_hitbox && ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0))
+    else if ((ball->center.y - ball->radius <= 0 && ball->direction.y < 0) || (settings.make_bottom_hitbox && ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0))
     {
         ball->prev_direction = ball->direction;
         tail_set_vertical_collision(ball, ball->direction.y > 0);
