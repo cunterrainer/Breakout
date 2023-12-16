@@ -71,6 +71,7 @@ struct GameSettings
     bool paddle_has_hitbox;
     bool show_ball_speed;
     bool increase_ball_speed;
+    bool auto_restart;
 };
 
 
@@ -566,7 +567,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
         break;
     }
 
-    if (IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
+    if (app->game_settings.auto_restart || IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
         return Reset;
     return app->state;
 }
@@ -671,7 +672,7 @@ struct Application app_start()
     app.frame_rate = 60;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
-    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true };
+    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true, .auto_restart = false };
 
     InitAudioDevice();
     InitWindow(app.width, app.height, "Breakout");
@@ -793,6 +794,11 @@ void on_app_key_input(struct Application* app)
         app->game_settings.increase_ball_speed = !app->game_settings.increase_ball_speed;
     }
 
+    if (IsKeyPressed(KEY_U))
+    {
+        app->game_settings.auto_restart = !app->game_settings.auto_restart;
+    }
+
     if (KEY_REPEAT(KEY_PERIOD))
     {
         app->frame_rate += 1;
@@ -878,7 +884,10 @@ int main()
             break;
         case Reset:
             app.game_objects = game_objects_init(app.width, app.height, 230, 30, app.game_objects.ball.speed);
-            app.state = Menu;
+            if (app.game_settings.auto_restart)
+                app.state = Game;
+            else
+                app.state = Menu;
             break;
         case Controlls:
             app.state = app_show_controlls(&app);

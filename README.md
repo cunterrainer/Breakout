@@ -10,6 +10,7 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **R:** Reset the game.  
 - **M:** Mute the audio.  
 - **X:** Render only the outlines of objects.  
+- **U:** Auto restart after success or failure.  
 - **G:** Make the bottom a hitbox (Game can no longer be lost). (Default: Off)  
 - **P:** Toggle the paddles hitbox. (Default: On)  
 - **B:** Show the speed of your ball. (Default: Off)  
