@@ -8,20 +8,30 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **A/D or left/right arrow:** Move the paddle horizontally.  
 - **Space:** Launch the ball at the start of the game or resume after a failed attempt.  
 - **R:** Reset the game.  
-- **M:** Mute the audio.
-- **X:** Render only the outlines of objects.
-- **F:** Show FPS.
-- **ESC:** Pause/resume the game.
+- **M:** Mute the audio.  
+- **X:** Render only the outlines of objects.  
+- **G:** Make the bottom a hitbox (Game can no longer be lost). (Default: Off)  
+- **P:** Toggle the paddles hitbox. (Default: On)  
+- **B:** Show the speed of your ball. (Default: Off)  
+- **I:** Toggle increment ball speed when scored. (Default: On)  
+- **F:** Show FPS. (Default: Off)  
+- **ESC:** Pause/resume the game.  
+- **+/- or W/A** Increase/Decrease the ball's speed.  
 
 ## Controller
 Here, the PS4 controller buttons are used as an example, but other controllers will work as well:
 - **DPAD or Left Stick:** Move the paddle horizontally.  
 - **X:** Launch the ball at the start of the game or resume after a failed attempt.  
 - **△:** Reset the game.  
-- **□**: Mute the audio.
-- **◯**: Render only the outlines of objects.
-- **SHARE:** Show FPS.
-- **OPTIONS:** Pause/resume the game.
+- **□**: Mute the audio.  
+- **◯**: Render only the outlines of objects.  
+- **Right Stick pressed:** Make the bottom a hitbox (Game can no longer be lost). (Default: Off)  
+- **Left Stick pressed:** Toggle the paddles hitbox. (Default: On)  
+- **L1:** Show the speed of your ball. (Default: Off)  
+- **R1:** Toggle increment ball speed when scored. (Default: On)  
+- **SHARE:** Show FPS.  
+- **OPTIONS:** Pause/resume the game.  
+- **DPAD Up/Down:**  Increase/Decrease the ball's speed.  
 
 If you encounter issues with controller input, please verify that you have selected the correct controller, ensuring it corresponds to the first one assigned by your PC.
 
