@@ -27,6 +27,7 @@ enum State
     Failed,
     Success,
     Reset,
+    ResetAll,
     Controlls
 };
 
@@ -622,9 +623,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
             play_sound(app->sound_objects.start);
             return Game;
         }
-        if (IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
-            return Reset;
-        return app->state;
+        return IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP) ? Reset : (IsKeyPressed(KEY_L) ? ResetAll : app->state);
     case Success:
         DrawText(text, x_pos, y_pos, app->font_size_menu, GOLD);
         break;
@@ -634,6 +633,9 @@ enum State on_menu_update(const struct Application* app, const char* text)
     default:
         break;
     }
+
+    if (IsKeyPressed(KEY_L))
+        return ResetAll;
 
     if (app->game_settings.auto_restart || IsKeyPressed(KEY_R) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP))
         return Reset;
@@ -918,6 +920,12 @@ int main()
                 app.state = Game;
             else
                 app.state = Menu;
+            break;
+        case ResetAll:
+            app.wins = 0;
+            app.failes = 0;
+            app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
+            app.state = app.game_settings.auto_restart ? Game : Menu;
             break;
         case Controlls:
             on_game_render(&app); // render the game to see stats like the ball speed etc.
