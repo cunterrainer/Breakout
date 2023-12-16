@@ -570,9 +570,9 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
     menu_render_controll(font_size, "(W|A|Up|Down) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
-    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
     menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit (if limit = 0, there is no limit)", WHITE, false);
+    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
     menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails", WHITE, false);
 
     menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
@@ -595,12 +595,12 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
 
     menu_render_controll(font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
+    menu_render_controll(font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
     menu_render_controll(font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
     menu_render_controll(font_size, "(R1) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
     menu_render_controll(font_size, "(SHARE) Show fps", app->show_fps ? GREEN : RED, false);
-    menu_render_controll(font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
-    menu_render_controll(font_size, "(Right Stick pressed) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
-    menu_render_controll(font_size, "(Left Stick pressed) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, true);
+    menu_render_controll(font_size, "(Left Stick pressed) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
+    menu_render_controll(font_size, "(Right Stick pressed) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, true);
     return app->state;
 }
 
