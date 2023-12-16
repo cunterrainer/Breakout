@@ -528,9 +528,7 @@ void on_game_render(const struct Application* app)
     }
 
     static const int score_font_size = 45;
-    char score_str[5] = { 0 }; // max score 9999
-    snprintf(score_str, ARRAY_SIZE(score_str), "%zu", app->game_objects.score);
-
+    const char* score_str = TextFormat("%zu", app->game_objects.score);
     const int text_length = MeasureText(score_str, score_font_size);
     const int score_x_pos = (app->width - text_length) / 2;
 
