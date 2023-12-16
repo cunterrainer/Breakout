@@ -17,7 +17,8 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **F3:** Show controlls (Switch between keyboard and controller with A/D/Left/Right)  
 - **F:** Show FPS. (Default: Off)  
 - **ESC:** Pause/resume the game.  
-- **+/- or W/A** Increase/Decrease the ball's speed.  
+- **+/- or W/A:** Increase/Decrease the ball's speed.  
+- **. or ,:** Increase/Decrease fps limit (if limit = 0, there is no limit).
 
 ## Controller
 Here, the PS4 controller buttons are used as an example, but other controllers will work as well:
