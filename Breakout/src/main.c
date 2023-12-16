@@ -322,12 +322,12 @@ bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float d
 }
 
 
-struct GameObjects game_objects_init(int window_width, int window_height, int paddle_width, int paddle_height)
+struct GameObjects game_objects_init(int window_width, int window_height, int paddle_width, int paddle_height, float ball_speed /* we dont want to reset the ball speed */)
 {
     struct GameObjects objects;
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
-    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, 500.f, { 1.4f, -1 }, { 0, 0 } };
+    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, ball_speed, { 1.4f, -1 }, { 0, 0 } };
     objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - 7.f, objects.paddle.y };
     objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + 7.f, objects.paddle.y };
     objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
@@ -668,7 +668,7 @@ struct Application app_start()
     app.x_ray = false;
     app.show_fps = false;
     app.font_size_menu = 90;
-    app.game_objects = game_objects_init(app.width, app.height, 230, 30);
+    app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
     app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true };
 
     InitAudioDevice();
@@ -850,7 +850,7 @@ int main()
             app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
-            app.game_objects = game_objects_init(app.width, app.height, 230, 30);
+            app.game_objects = game_objects_init(app.width, app.height, 230, 30, app.game_objects.ball.speed);
             app.state = Menu;
             break;
         case Controlls:
