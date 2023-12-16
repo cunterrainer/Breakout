@@ -72,6 +72,7 @@ struct GameSettings
     bool show_ball_speed;
     bool increase_ball_speed;
     bool auto_restart;
+    bool auto_move;
 };
 
 
@@ -368,6 +369,13 @@ enum State on_game_update(struct Application* app, float dt)
     {
         play_sound(app->sound_objects.failed);
         return Failed;
+    }
+
+    if (app->game_settings.auto_move)
+    {
+        app->game_objects.paddle.x = app->game_objects.ball.center.x - app->game_objects.paddle.width / 2.f;
+        app->game_objects.paddle.x = MIN(app->game_objects.paddle.x, app->width - app->game_objects.paddle.width);
+        app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x);
     }
 
     if (ball_bricks_collision(&app->game_objects.ball, app->game_objects.bricks))
@@ -672,7 +680,7 @@ struct Application app_start()
     app.frame_rate = 60;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
-    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true, .auto_restart = false };
+    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true, .auto_restart = false, .auto_move = false };
 
     InitAudioDevice();
     InitWindow(app.width, app.height, "Breakout");
@@ -792,6 +800,11 @@ void on_app_key_input(struct Application* app)
     if (IsKeyPressed(KEY_I) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1))
     {
         app->game_settings.increase_ball_speed = !app->game_settings.increase_ball_speed;
+    }
+
+    if (IsKeyPressed(KEY_O))
+    {
+        app->game_settings.auto_move = !app->game_settings.auto_move;
     }
 
     if (IsKeyPressed(KEY_U))
