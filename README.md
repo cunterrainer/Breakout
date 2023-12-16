@@ -14,6 +14,7 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 - **P:** Toggle the paddles hitbox. (Default: On)  
 - **B:** Show the speed of your ball. (Default: Off)  
 - **I:** Toggle increment ball speed when scored. (Default: On)  
+- **F3:** Show controlls (Switch between keyboard and controller with A/D/Left/Right)  
 - **F:** Show FPS. (Default: Off)  
 - **ESC:** Pause/resume the game.  
 - **+/- or W/A** Increase/Decrease the ball's speed.  
@@ -29,6 +30,7 @@ Here, the PS4 controller buttons are used as an example, but other controllers w
 - **Left Stick pressed:** Toggle the paddles hitbox. (Default: On)  
 - **L1:** Show the speed of your ball. (Default: Off)  
 - **R1:** Toggle increment ball speed when scored. (Default: On)  
+- **R2:** Show controlls (Switch between keyboard and controller with DPAD Left/Right)  
 - **SHARE:** Show FPS.  
 - **OPTIONS:** Pause/resume the game.  
 - **DPAD Up/Down:**  Increase/Decrease the ball's speed.  
