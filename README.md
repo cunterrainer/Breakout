@@ -5,38 +5,39 @@ Welcome to Breakout, a classic arcade game! This version reintroduces the excite
 
 # Controls
 ## Keyboard
-- **A/D or left/right arrow:** Move the paddle horizontally.  
-- **Space:** Launch the ball at the start of the game or resume after a failed attempt.  
-- **R:** Reset the game.  
-- **M:** Mute the audio.  
-- **X:** Render only the outlines of objects. 
-- **O:** Auto move the paddle. (Default: Off)  
-- **U:** Auto restart after success or failure. (Default: Off)  
-- **G:** Make the bottom a hitbox (Game can no longer be lost). (Default: Off)  
-- **P:** Toggle the paddles hitbox. (Default: On)  
-- **B:** Show the speed of your ball. (Default: Off)  
-- **I:** Toggle increment ball speed when scored. (Default: On)  
-- **F3:** Show controlls (Switch between keyboard and controller with A/D/Left/Right)  
-- **F:** Show FPS. (Default: Off)  
-- **ESC:** Pause/resume the game.  
-- **+/- or W/A:** Increase/Decrease the ball's speed.  
+- **A/D or left/right arrow:** Move the paddle horizontally.
+- **Space:** Launch the ball at the start of the game or resume after a failed attempt.
+- **R:** Reset the game.
+- **L:** Reset the game including stats.
+- **M:** Mute the audio.
+- **X:** Render only the outlines of objects.
+- **O:** Auto move the paddle.
+- **U:** Auto restart after success or failure.
+- **G:** Make the bottom a hitbox (Game can no longer be lost).
+- **P:** Toggle the paddles hitbox.
+- **B:** Show game stats (wins, fails, ball speed).
+- **I:** Toggle increment ball speed when scored.
+- **F:** Show FPS.
+- **F3:** Show controlls
+- **ESC:** Pause/resume the game.
 - **. or ,:** Increase/Decrease fps limit (if limit = 0, there is no limit).
+- **W/A or Up/Down:** Increase/Decrease the ball's speed.
 
 ## Controller
 Here, the PS4 controller buttons are used as an example, but other controllers will work as well:
-- **DPAD or Left Stick:** Move the paddle horizontally.  
-- **X:** Launch the ball at the start of the game or resume after a failed attempt.  
-- **△:** Reset the game.  
-- **□**: Mute the audio.  
-- **◯**: Render only the outlines of objects.  
-- **Right Stick pressed:** Make the bottom a hitbox (Game can no longer be lost). (Default: Off)  
-- **Left Stick pressed:** Toggle the paddles hitbox. (Default: On)  
-- **L1:** Show the speed of your ball. (Default: Off)  
-- **R1:** Toggle increment ball speed when scored. (Default: On)  
-- **R2:** Show controlls (Switch between keyboard and controller with DPAD Left/Right)  
-- **SHARE:** Show FPS.  
-- **OPTIONS:** Pause/resume the game.  
-- **DPAD Up/Down:**  Increase/Decrease the ball's speed.  
+- **DPAD or Left Stick:** Move the paddle horizontally.
+- **X:** Launch the ball at the start of the game or resume after a failed attempt.
+- **△:** Reset the game.
+- **□**: Mute the audio.
+- **◯**: Render only the outlines of objects.
+- **L1:** Show the speed of your ball.
+- **R1:** Toggle increment ball speed when scored.
+- **R2:** Show controlls
+- **SHARE:** Show FPS.
+- **OPTIONS:** Pause/resume the game.
+- **DPAD Up/Down:**  Increase/Decrease the ball's speed.
+- **Right Stick pressed:** Make the bottom a hitbox (Game can no longer be lost).
+- **Left Stick pressed:** Toggle the paddles hitbox.
 
 If you encounter issues with controller input, please verify that you have selected the correct controller, ensuring it corresponds to the first one assigned by your PC.
 

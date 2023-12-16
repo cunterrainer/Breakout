@@ -565,13 +565,14 @@ enum State menu_show_controlls(const struct Application* app)
     DrawRectangle(app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
     DrawRectangle(0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
 
-    const int font_size = (app->height - 10) / 31;
+    const int font_size = (app->height - 10) / 32;
     menu_render_controll(font_size, "Keyboard", WHITE, false);
     menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
     menu_render_controll(font_size, "(W|A|Up|Down) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
     menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit (if limit = 0, there is no limit)", WHITE, false);
+    menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
     menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
     menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails", WHITE, false);
 
