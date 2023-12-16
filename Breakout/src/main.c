@@ -103,6 +103,8 @@ struct Application
     int height;
     int frame_rate;
     int font_size_menu;
+    size_t wins;
+    size_t failes;
     bool x_ray;
     bool show_fps;
     Texture2D volume_on;
@@ -367,6 +369,7 @@ enum State on_game_update(struct Application* app, float dt)
 
     if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle, app->game_settings))
     {
+        app->failes++;
         play_sound(app->sound_objects.failed);
         return Failed;
     }
@@ -387,6 +390,7 @@ enum State on_game_update(struct Application* app, float dt)
     }
     if (app->game_objects.score == NUM_BRICKS)
     {
+        app->wins++;
         play_sound(app->sound_objects.success);
         return Success;
     }
@@ -500,10 +504,10 @@ void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, V
 }
 
 
-void on_game_render(const struct GameObjects* game_objects, const struct GameSettings settings, int window_width, bool x_ray)
+void on_game_render(const struct Application* app)
 {
-    const struct Ball* ball = &game_objects->ball;
-    const struct Tail* tail = &game_objects->ball.tail;
+    const struct Ball* ball = &app->game_objects.ball;
+    const struct Tail* tail = &app->game_objects.ball.tail;
 
     Vector2 ball_p1 = { .x = ball->center.x, .y = ball->center.y - ball->radius };
     Vector2 ball_p2 = { .x = ball->center.x, .y = ball->center.y + ball->radius };
@@ -518,28 +522,28 @@ void on_game_render(const struct GameObjects* game_objects, const struct GameSet
 
     static const int score_font_size = 45;
     char score_str[5] = { 0 }; // max score 9999
-    snprintf(score_str, ARRAY_SIZE(score_str), "%zu", game_objects->score);
+    snprintf(score_str, ARRAY_SIZE(score_str), "%zu", app->game_objects.score);
 
     const int text_length = MeasureText(score_str, score_font_size);
-    const int score_x_pos = (window_width - text_length) / 2;
+    const int score_x_pos = (app->width - text_length) / 2;
 
     static const Color tail_color = { .r = 200, .g = 200, .b = 200, .a = 70 };
-    if (!x_ray)
+    if (!app->x_ray)
     {
-        game_render(game_objects, ball_p1, ball_p2, tail_color);
+        game_render(&app->game_objects, ball_p1, ball_p2, tail_color);
     }
     else
     {
-        game_render_xray(game_objects, ball_p1, ball_p2, tail_color);
+        game_render_xray(&app->game_objects, ball_p1, ball_p2, tail_color);
     }
 
     DrawText(score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
 
-    if (settings.show_ball_speed)
+    if (app->game_settings.show_ball_speed)
     {
-        const char* ball_speed_str = TextFormat("%zu", (size_t)game_objects->ball.speed);
+        const char* ball_speed_str = TextFormat("W: %zu F: %zu %zu", app->wins, app->failes, (size_t)app->game_objects.ball.speed);
         const int speed_length = MeasureText(ball_speed_str, score_font_size);
-        DrawText(ball_speed_str, window_width - speed_length - 10, 10, score_font_size, GRAY);
+        DrawText(ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
     }
 }
 
@@ -672,6 +676,8 @@ Texture2D load_image(const unsigned char* data, int size)
 struct Application app_start()
 {
     struct Application app;
+    app.wins = 0;
+    app.failes = 0;
     app.width = 1200;
     app.height = 750;
     app.state = Menu;
@@ -876,23 +882,23 @@ int main()
         switch (app.state)
         {
         case Menu:
-            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
+            on_game_render(&app);
             app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
             break;
         case Game:
             app.state = on_game_update(&app, GetFrameTime());
-            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
+            on_game_render(&app);
             break;
         case Break:
-            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
+            on_game_render(&app);
             app.state = on_menu_update(&app, "Paused");
             break;
         case Success:
-            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
+            on_game_render(&app);
             app.state = on_menu_update(&app, "You won!");
             break;
         case Failed:
-            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
+            on_game_render(&app);
             app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
