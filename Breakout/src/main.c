@@ -99,6 +99,7 @@ struct Application
     enum State state;
     int width;
     int height;
+    int frame_rate;
     int font_size_menu;
     bool x_ray;
     bool show_fps;
@@ -667,6 +668,7 @@ struct Application app_start()
     app.state = Menu;
     app.x_ray = false;
     app.show_fps = false;
+    app.frame_rate = 60;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
     app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true };
@@ -789,6 +791,19 @@ void on_app_key_input(struct Application* app)
     if (IsKeyPressed(KEY_I) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1))
     {
         app->game_settings.increase_ball_speed = !app->game_settings.increase_ball_speed;
+    }
+
+    if (KEY_REPEAT(KEY_PERIOD))
+    {
+        app->frame_rate += 1;
+        SetTargetFPS(app->frame_rate);
+    }
+
+    if (KEY_REPEAT(KEY_COMMA))
+    {
+        app->frame_rate -= 1;
+        app->frame_rate = MAX(app->frame_rate, 0);
+        SetTargetFPS(app->frame_rate);
     }
 
     if (KEY_REPEAT(KEY_W))
