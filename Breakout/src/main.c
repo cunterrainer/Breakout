@@ -110,8 +110,6 @@ struct Application
     bool show_fps;
     Texture2D volume_on;
     Texture2D volume_off;
-    Texture2D controlls_keyboard;
-    Texture2D controlls_gamepad;
 };
 
 
@@ -757,8 +755,6 @@ struct Application app_start()
     app_load_audio(&app);
     app.volume_on = load_image(sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
     app.volume_off = load_image(sg_Volume_off_image, ARRAY_SIZE(sg_Volume_off_image));
-    app.controlls_gamepad = load_image(sg_Gamepad_controlls_image, ARRAY_SIZE(sg_Gamepad_controlls_image));
-    app.controlls_keyboard = load_image(sg_Keyboard_controlls_image, ARRAY_SIZE(sg_Keyboard_controlls_image));
     return app;
 }
 
@@ -767,8 +763,6 @@ void app_shutdown(const struct Application* app)
 {
     UnloadTexture(app->volume_on);
     UnloadTexture(app->volume_off);
-    UnloadTexture(app->controlls_gamepad);
-    UnloadTexture(app->controlls_keyboard);
     UnloadSound(app->sound_objects.success.sound);
     UnloadSound(app->sound_objects.failed.sound);
     UnloadSound(app->sound_objects.start.sound);
@@ -776,47 +770,6 @@ void app_shutdown(const struct Application* app)
     UnloadSound(app->sound_objects.hit_paddle.sound);
     CloseAudioDevice();
     TerminateWindow();
-}
-
-
-enum State app_show_controlls(const struct Application* app)
-{
-    static int mode = 0; // 0 = keyboard, 1 = gamepad
-
-    if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT))
-    {
-        mode = !mode;
-    }
-
-    if (IsKeyPressed(KEY_ESCAPE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
-    {
-        return Break;
-    }
-
-    if (mode == 0)
-    {
-        DrawTexturePro(
-            app->controlls_keyboard,
-            (Rectangle) { 0.0f, 0.0f, (float)app->controlls_keyboard.width, (float)app->controlls_keyboard.height },
-            (Rectangle) { 0.0f, 0.0f, (float)app->width, (float)app->height },
-            (Vector2) { 0, 0 },
-            0.f,
-            WHITE
-        );
-    }
-    else
-    {
-        DrawTexturePro(
-            app->controlls_gamepad,
-            (Rectangle) { 0.0f, 0.0f, (float)app->controlls_gamepad.width, (float)app->controlls_gamepad.height },
-            (Rectangle) { 0.0f, 0.0f, (float)app->width, (float)app->height },
-            (Vector2) { 0, 0 },
-            0.f,
-            WHITE
-        );
-    }
-
-    return Controlls;
 }
 
 
