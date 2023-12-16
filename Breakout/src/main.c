@@ -15,6 +15,7 @@
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(*a))
+#define KEY_REPEAT(key) (IsKeyPressed(key) || IsKeyPressedRepeat(key))
 
 
 enum State
@@ -63,6 +64,15 @@ struct GameObjects
 };
 
 
+struct GameSettings
+{
+    bool make_bottom_hitbox;
+    bool paddle_has_hitbox;
+    bool show_ball_speed;
+    bool increase_ball_speed;
+};
+
+
 struct ToggleSound
 {
     Sound sound;
@@ -83,6 +93,7 @@ struct SoundObjects
 struct Application
 {
     struct GameObjects game_objects;
+    struct GameSettings game_settings;
     struct SoundObjects sound_objects;
     enum State state;
     int width;
@@ -263,7 +274,7 @@ void ball_animate_tail(struct Ball* ball, float dt)
 }
 
 
-bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound)
+bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float dt, struct ToggleSound hit_sound, struct GameSettings settings)
 {
     ball->center.x += ball->direction.x * dt * ball->speed;
     ball->center.y += ball->direction.y * dt * ball->speed;
@@ -279,13 +290,13 @@ bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float d
         tail_set_horizontal_collision(ball, ball->direction.x > 0);
         ball->direction = ball_calculate_reflected_direction(normal_hor, ball->direction);
     }
-    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0) // || ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0)
+    else if (ball->center.y - ball->radius <= 0 && ball->direction.y < 0 || (settings.make_bottom_hitbox && ball->center.y + ball->radius >= window_size.y && ball->direction.y > 0))
     {
         ball->prev_direction = ball->direction;
-        tail_set_vertical_collision(ball, 0);
+        tail_set_vertical_collision(ball, ball->direction.y > 0);
         ball->direction = ball_calculate_reflected_direction(normal_ver, ball->direction);
     }
-    else if (CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
+    else if (settings.paddle_has_hitbox && CheckCollisionCircleRec(ball->center, ball->radius, paddle) && ball->direction.y > 0)
     {
         ball->prev_direction = ball->direction;
         tail_set_vertical_collision(ball, ball->direction.y > 0);
@@ -302,7 +313,7 @@ bool ball_move(struct Ball* ball, Rectangle paddle, Vector2 window_size, float d
         }
         play_sound(hit_sound);
     }
-    else if (ball->center.y + ball->radius >= window_size.y)
+    else if (!settings.make_bottom_hitbox && ball->center.y + ball->radius >= window_size.y)
         return false;
     return true;
 }
@@ -329,10 +340,13 @@ enum State on_game_update(struct Application* app, float dt)
     if (IsKeyPressed(KEY_ESCAPE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
-    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0) {
+    if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0)
+    {
         app->game_objects.paddle.x = MAX(0, app->game_objects.paddle.x - 1250 * dt);
     }
-    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0) {
+
+    if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT) || IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0)
+    {
         app->game_objects.paddle.x = MIN(app->game_objects.paddle.x + 1250 * dt, app->width - app->game_objects.paddle.width);
     }
 
@@ -345,7 +359,7 @@ enum State on_game_update(struct Application* app, float dt)
         prev_mouse_pos = mouse_pos;
     }
 
-    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle))
+    if (!ball_move(&app->game_objects.ball, app->game_objects.paddle, (Vector2){ app->width, app->height }, dt, app->sound_objects.hit_paddle, app->game_settings))
     {
         play_sound(app->sound_objects.failed);
         return Failed;
@@ -355,7 +369,8 @@ enum State on_game_update(struct Application* app, float dt)
     {
         play_sound(app->sound_objects.hit_brick);
         app->game_objects.score++;
-        app->game_objects.ball.speed += 6.f;
+        if (app->game_settings.increase_ball_speed)
+            app->game_objects.ball.speed += 6.f;
     }
     if (app->game_objects.score == NUM_BRICKS)
     {
@@ -472,7 +487,7 @@ void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, V
 }
 
 
-void on_game_render(const struct GameObjects* game_objects, int window_width, bool x_ray)
+void on_game_render(const struct GameObjects* game_objects, const struct GameSettings settings, int window_width, bool x_ray)
 {
     const struct Ball* ball = &game_objects->ball;
     const struct Tail* tail = &game_objects->ball.tail;
@@ -506,6 +521,13 @@ void on_game_render(const struct GameObjects* game_objects, int window_width, bo
     }
 
     DrawText(score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
+
+    if (settings.show_ball_speed)
+    {
+        const char* ball_speed_str = TextFormat("%zu", (size_t)game_objects->ball.speed);
+        const int speed_length = MeasureText(ball_speed_str, score_font_size);
+        DrawText(ball_speed_str, window_width - speed_length - 10, 10, score_font_size, GRAY);
+    }
 }
 
 
@@ -644,6 +666,7 @@ struct Application app_start()
     app.show_fps = false;
     app.font_size_menu = 90;
     app.game_objects = game_objects_init(app.width, app.height, 230, 30);
+    app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_ball_speed = false, .increase_ball_speed = true };
 
     InitAudioDevice();
     InitWindow(app.width, app.height, "Breakout");
@@ -674,38 +697,76 @@ void app_shutdown(const struct Application* app)
 }
 
 
+void on_app_key_input(struct Application* app)
+{
+    if (IsKeyPressed(KEY_X) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT))
+    {
+        app->x_ray = !app->x_ray;
+    }
+
+    if (IsKeyPressed(KEY_M) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT))
+    {
+        app->sound_objects.hit_brick.play = !app->sound_objects.hit_brick.play;
+        app->sound_objects.hit_paddle.play = !app->sound_objects.hit_paddle.play;
+        app->sound_objects.start.play = !app->sound_objects.start.play;
+        app->sound_objects.failed.play = !app->sound_objects.failed.play;
+        app->sound_objects.success.play = !app->sound_objects.success.play;
+    }
+
+    if (IsKeyPressed(KEY_F) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_LEFT))
+    {
+        app->show_fps = !app->show_fps;
+    }
+
+    if (IsKeyPressed(KEY_G) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_THUMB))
+    {
+        app->game_settings.make_bottom_hitbox = !app->game_settings.make_bottom_hitbox;
+    }
+
+    if (IsKeyPressed(KEY_P) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_THUMB))
+    {
+        app->game_settings.paddle_has_hitbox = !app->game_settings.paddle_has_hitbox;
+    }
+
+    if (IsKeyPressed(KEY_B) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_TRIGGER_1))
+    {
+        app->game_settings.show_ball_speed = !app->game_settings.show_ball_speed;
+    }
+
+    if (IsKeyPressed(KEY_I) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_TRIGGER_1))
+    {
+        app->game_settings.increase_ball_speed = !app->game_settings.increase_ball_speed;
+    }
+
+    if (KEY_REPEAT(KEY_W) || KEY_REPEAT(KEY_UP) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_UP))
+    {
+        app->game_objects.ball.speed += 10.f;
+        app->game_objects.ball.speed = MIN(app->game_objects.ball.speed, 100000);
+    }
+
+    if (KEY_REPEAT(KEY_S) || KEY_REPEAT(KEY_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN))
+    {
+        app->game_objects.ball.speed -= 10.f;
+        app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 0);
+    }
+}
+
+
 int main()
 {
     struct Application app = app_start();
 
     while (!WindowShouldClose())
     {
-        BeginDrawing();
-        ClearBackground((Color) { 10, 10, 10, 255 });
+        on_app_key_input(&app);
 
         if (IsWindowResized())
         {
             on_app_resize(&app, GetScreenWidth(), GetScreenHeight());
         }
 
-        if (IsKeyPressed(KEY_X) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_LEFT))
-        {
-            app.x_ray = !app.x_ray;
-        }
-
-        if (IsKeyPressed(KEY_M) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_RIGHT))
-        {
-            app.sound_objects.hit_brick.play  = !app.sound_objects.hit_brick.play;
-            app.sound_objects.hit_paddle.play = !app.sound_objects.hit_paddle.play;
-            app.sound_objects.start.play      = !app.sound_objects.start.play;
-            app.sound_objects.failed.play     = !app.sound_objects.failed.play;
-            app.sound_objects.success.play    = !app.sound_objects.success.play;
-        }
-
-        if (IsKeyPressed(KEY_F) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_LEFT))
-        {
-            app.show_fps = !app.show_fps;
-        }
+        BeginDrawing();
+        ClearBackground((Color) { 10, 10, 10, 255 });
 
         if (app.show_fps)
         {
@@ -716,23 +777,23 @@ int main()
         switch (app.state)
         {
         case Menu:
-            on_game_render(&app.game_objects, app.width, app.x_ray);
+            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
             break;
         case Game:
             app.state = on_game_update(&app, GetFrameTime());
-            on_game_render(&app.game_objects, app.width, app.x_ray);
+            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
             break;
         case Break:
-            on_game_render(&app.game_objects, app.width, app.x_ray);
+            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
             app.state = on_menu_update(&app, "Paused");
             break;
         case Success:
-            on_game_render(&app.game_objects, app.width, app.x_ray);
+            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You won!");
             break;
         case Failed:
-            on_game_render(&app.game_objects, app.width, app.x_ray);
+            on_game_render(&app.game_objects, app.game_settings, app.width, app.x_ray);
             app.state = on_menu_update(&app, "You lost!");
             break;
         case Reset:
