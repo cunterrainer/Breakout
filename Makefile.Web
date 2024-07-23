@@ -80,7 +80,7 @@ all:
 	$(SILENT) mv $(RAYLIB_SRC)/rtextures.o $(RAYLIB_OBJ_DIR)/rtextures.o
 	$(SILENT) mv $(RAYLIB_SRC)/utils.o $(RAYLIB_OBJ_DIR)/utils.o
 	$(SILENT) $(CC) -o $(SNAKE_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
-	$(SILENT) $(CC) -o $(SNAKE_TARGET) $(CC_FLAGS) $(SNAKE_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3 -s ASYNCIFY
+	$(SILENT) $(CC) -o $(SNAKE_TARGET) $(CC_FLAGS) $(SNAKE_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
 
 
 clean:

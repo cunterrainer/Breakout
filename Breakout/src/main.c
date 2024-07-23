@@ -7,6 +7,10 @@
 #include "images.h"
 #include "winmain.h"
 
+#ifdef SYSTEM_WEB
+    #include <emscripten/emscripten.h>
+#endif
+
 #define BRICKS_HOR     10 // num of horizontal bricks
 #define BRICKS_VER     7  // num of vertical bricks
 #define NUM_BRICKS     BRICKS_HOR * BRICKS_VER
@@ -896,69 +900,81 @@ void on_app_key_input(struct Application* app)
 }
 
 
+void GameLoop(void* a)
+{
+    struct Application* app = (struct Application*)a;
+
+    on_app_key_input(app);
+
+    if (IsWindowResized())
+    {
+        on_app_resize(app, GetScreenWidth(), GetScreenHeight());
+    }
+
+    BeginDrawing();
+    ClearBackground((Color) { 10, 10, 10, 255 });
+
+    if (app->show_fps)
+    {
+        DrawFPS(10, 10);
+    }
+
+
+    switch (app->state)
+    {
+    case Menu:
+        on_game_render(app);
+        app->state = on_menu_update(app, "Press A|D to start"); // to render the menu on top of the game not vice versa
+        break;
+    case Game:
+        app->state = on_game_update(app, GetFrameTime());
+        on_game_render(app);
+        break;
+    case Break:
+        on_game_render(app);
+        app->state = on_menu_update(app, "Paused");
+        break;
+    case Success:
+        on_game_render(app);
+        app->state = on_menu_update(app, "You won!");
+        break;
+    case Failed:
+        on_game_render(app);
+        app->state = on_menu_update(app, "You lost!");
+        break;
+    case Reset:
+        app->game_objects = game_objects_init(app->width, app->height, 230, 30, app->game_objects.ball.speed);
+        app->state = app->game_settings.auto_restart ? Game : Menu;
+        break;
+    case ResetAll:
+        app->wins = 0;
+        app->failes = 0;
+        app->game_objects = game_objects_init(app->width, app->height, 230, 30, 500.f);
+        app->state = app->game_settings.auto_restart ? Game : Menu;
+        break;
+    case Controlls:
+        on_game_render(app); // render the game to see stats like the ball speed etc.
+        app->state = menu_show_controlls(app);
+        break;
+    default:
+        break;
+    }
+
+    EndDrawing();
+}
+
+
 int main()
 {
     struct Application app = app_start();
 
+#ifdef SYSTEM_WEB
+    emscripten_set_main_loop_arg(GameLoop, &app, 0, 1);
+#else
     while (!WindowShouldClose())
     {
-        on_app_key_input(&app);
-
-        if (IsWindowResized())
-        {
-            on_app_resize(&app, GetScreenWidth(), GetScreenHeight());
-        }
-
-        BeginDrawing();
-        ClearBackground((Color) { 10, 10, 10, 255 });
-
-        if (app.show_fps)
-        {
-            DrawFPS(10, 10);
-        }
-
-
-        switch (app.state)
-        {
-        case Menu:
-            on_game_render(&app);
-            app.state = on_menu_update(&app, "Press A|D to start"); // to render the menu on top of the game not vice versa
-            break;
-        case Game:
-            app.state = on_game_update(&app, GetFrameTime());
-            on_game_render(&app);
-            break;
-        case Break:
-            on_game_render(&app);
-            app.state = on_menu_update(&app, "Paused");
-            break;
-        case Success:
-            on_game_render(&app);
-            app.state = on_menu_update(&app, "You won!");
-            break;
-        case Failed:
-            on_game_render(&app);
-            app.state = on_menu_update(&app, "You lost!");
-            break;
-        case Reset:
-            app.game_objects = game_objects_init(app.width, app.height, 230, 30, app.game_objects.ball.speed);
-            app.state = app.game_settings.auto_restart ? Game : Menu;
-            break;
-        case ResetAll:
-            app.wins = 0;
-            app.failes = 0;
-            app.game_objects = game_objects_init(app.width, app.height, 230, 30, 500.f);
-            app.state = app.game_settings.auto_restart ? Game : Menu;
-            break;
-        case Controlls:
-            on_game_render(&app); // render the game to see stats like the ball speed etc.
-            app.state = menu_show_controlls(&app);
-            break;
-        default:
-            break;
-        }
-
-        EndDrawing();
+        GameLoop(&app);
     }
+#endif
     app_shutdown(&app);
 }
