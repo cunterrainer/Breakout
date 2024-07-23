@@ -18,9 +18,9 @@ ifeq ($(config),debug)
 	RAYLIB_TARGET = $(RAYLIB_TARGET_DIR)/libraylib.a
 	RAYLIB_SRC = Dependencies/raylib/src
 
-	SNAKE_TARGET_DIR = BIN/emcc/debug/Snake/bin
-	SNAKE_OBJ_DIR = BIN/emcc/debug/Snake/bin-int
-	SNAKE_TARGET = $(SNAKE_TARGET_DIR)/Snake.html
+	BREAKOUT_TARGET_DIR = BIN/emcc/debug/Breakout/bin
+	BREAKOUT_OBJ_DIR = BIN/emcc/debug/Breakout/bin-int
+	BREAKOUT_TARGET = $(BREAKOUT_TARGET_DIR)/Breakout.html
 endif
 
 ifeq ($(config),release)
@@ -31,9 +31,9 @@ ifeq ($(config),release)
 	RAYLIB_TARGET = $(RAYLIB_TARGET_DIR)/libraylib.a
 	RAYLIB_SRC = Dependencies/raylib/src
 
-	SNAKE_TARGET_DIR = BIN/emcc/release/Snake/bin
-	SNAKE_OBJ_DIR = BIN/emcc/release/Snake/bin-int
-	SNAKE_TARGET = $(SNAKE_TARGET_DIR)/Snake.html
+	BREAKOUT_TARGET_DIR = BIN/emcc/release/Breakout/bin
+	BREAKOUT_OBJ_DIR = BIN/emcc/release/Breakout/bin-int
+	BREAKOUT_TARGET = $(BREAKOUT_TARGET_DIR)/Breakout.html
 endif
 
 # create directories
@@ -68,8 +68,8 @@ endif
 all:
 	$(call create_dir,$(RAYLIB_TARGET_DIR))
 	$(call create_dir,$(RAYLIB_OBJ_DIR))
-	$(call create_dir,$(SNAKE_TARGET_DIR))
-	$(call create_dir,$(SNAKE_OBJ_DIR))
+	$(call create_dir,$(BREAKOUT_TARGET_DIR))
+	$(call create_dir,$(BREAKOUT_OBJ_DIR))
 	$(SILENT) $(MAKE) -C Dependencies/raylib/src -f Makefile.Web PLATFORM=PLATFORM_WEB $(PARALLEL_FLAG)
 	$(SILENT) mv $(RAYLIB_SRC)/libraylib.a $(RAYLIB_TARGET)
 	$(SILENT) mv $(RAYLIB_SRC)/raudio.o $(RAYLIB_OBJ_DIR)/raudio.o
@@ -79,22 +79,22 @@ all:
 	$(SILENT) mv $(RAYLIB_SRC)/rtext.o $(RAYLIB_OBJ_DIR)/rtext.o
 	$(SILENT) mv $(RAYLIB_SRC)/rtextures.o $(RAYLIB_OBJ_DIR)/rtextures.o
 	$(SILENT) mv $(RAYLIB_SRC)/utils.o $(RAYLIB_OBJ_DIR)/utils.o
-	$(SILENT) $(CC) -o $(SNAKE_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
-	$(SILENT) $(CC) -o $(SNAKE_TARGET) $(CC_FLAGS) $(SNAKE_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
+	$(SILENT) $(CC) -o $(BREAKOUT_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
+	$(SILENT) $(CC) -o $(BREAKOUT_TARGET) $(CC_FLAGS) $(BREAKOUT_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
 
 
 clean:
-	@echo Cleaning Snake
+	@echo Cleaning BREAKOUT
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) rm -rf  $(RAYLIB_TARGET_DIR)
 	$(SILENT) rm -rf $(RAYLIB_OBJ_DIR)
-	$(SILENT) rm -rf  $(SNAKE_TARGET_DIR)
-	$(SILENT) rm -rf $(SNAKE_OBJ_DIR)
+	$(SILENT) rm -rf  $(BREAKOUT_TARGET_DIR)
+	$(SILENT) rm -rf $(BREAKOUT_OBJ_DIR)
 else
 	$(SILENT) if exist $(subst /,\\,$(RAYLIB_TARGET_DIR)) rmdir /s /q $(subst /,\\,$(RAYLIB_TARGET_DIR))
 	$(SILENT) if exist $(subst /,\\,$(RAYLIB_OBJ_DIR)) rmdir /s /q $(subst /,\\,$(RAYLIB_OBJ_DIR))
-	$(SILENT) if exist $(subst /,\\,$(SNAKE_TARGET_DIR)) rmdir /s /q $(subst /,\\,$(SNAKE_TARGET_DIR))
-	$(SILENT) if exist $(subst /,\\,$(SNAKE_OBJ_DIR)) rmdir /s /q $(subst /,\\,$(SNAKE_OBJ_DIR))
+	$(SILENT) if exist $(subst /,\\,$(BREAKOUT_TARGET_DIR)) rmdir /s /q $(subst /,\\,$(BREAKOUT_TARGET_DIR))
+	$(SILENT) if exist $(subst /,\\,$(BREAKOUT_OBJ_DIR)) rmdir /s /q $(subst /,\\,$(BREAKOUT_OBJ_DIR))
 endif
 
 
