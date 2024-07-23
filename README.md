@@ -1,5 +1,5 @@
 # Breakout
-Welcome to Breakout, a classic arcade game! This version reintroduces the excitement of breaking bricks and maneuvering a paddle to keep the ball in play. Get ready for a challenging experience with enhanced gameplay mechanics.
+Welcome to Breakout, a classic arcade game! This version reintroduces the excitement of breaking bricks and maneuvering a paddle to keep the ball in play. Get ready for a challenging experience with enhanced gameplay mechanics. [Try the web build](https://cunterrainer.github.io/Breakout/)
 
 ![image info](./docs/preview.png)
 
@@ -102,10 +102,11 @@ make [-j] config=<configuration>
 ```
 
 ### Build WebAssembly
+There is already a precompiled build in docs, otherwise you have to build it yourself.
 ``` bash
 make -f Makefile.Web [-j] config=<configuration>
 ```
-If you don't like emscriptens default page you can use the provided `Breakout.html` in `Breakout/src`.
+If you don't like emscriptens default page you can use the provided `index.html` in `docs`.
 
 Configurations:
  - debug_x86
