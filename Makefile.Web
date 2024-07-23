@@ -1,0 +1,110 @@
+# Makefile for Webassembly builds
+
+ifndef config
+  config=debug
+endif
+
+ifndef verbose
+  SILENT = @
+endif
+
+CC = emcc
+
+ifeq ($(config),debug)
+	CC_FLAGS = -Og -g
+
+	RAYLIB_TARGET_DIR = BIN/emcc/debug/raylib/bin
+	RAYLIB_OBJ_DIR = BIN/emcc/debug/raylib/bin-int
+	RAYLIB_TARGET = $(RAYLIB_TARGET_DIR)/libraylib.a
+	RAYLIB_SRC = Dependencies/raylib/src
+
+	SNAKE_TARGET_DIR = BIN/emcc/debug/Snake/bin
+	SNAKE_OBJ_DIR = BIN/emcc/debug/Snake/bin-int
+	SNAKE_TARGET = $(SNAKE_TARGET_DIR)/Snake.html
+endif
+
+ifeq ($(config),release)
+	CC_FLAGS = -O2
+
+	RAYLIB_TARGET_DIR = BIN/emcc/release/raylib/bin
+	RAYLIB_OBJ_DIR = BIN/emcc/release/raylib/bin-int
+	RAYLIB_TARGET = $(RAYLIB_TARGET_DIR)/libraylib.a
+	RAYLIB_SRC = Dependencies/raylib/src
+
+	SNAKE_TARGET_DIR = BIN/emcc/release/Snake/bin
+	SNAKE_OBJ_DIR = BIN/emcc/release/Snake/bin-int
+	SNAKE_TARGET = $(SNAKE_TARGET_DIR)/Snake.html
+endif
+
+# create directories
+SHELLTYPE := posix
+ifeq (.exe,$(findstring .exe,$(ComSpec)))
+	SHELLTYPE := msdos
+endif
+
+define create_dir
+    @echo Creating $(1)
+    $(CREATE_DIR_COMMAND) $(1)
+endef
+
+ifeq (posix,$(SHELLTYPE))
+    CREATE_DIR_COMMAND = mkdir -p
+else
+    CREATE_DIR_COMMAND = mkdir $(subst /,\\,)
+endif
+# end create dirs
+
+
+# Check if the -j flag is passed
+ifeq ($(filter j%,$(MAKEFLAGS)),)
+    PARALLEL_FLAG :=
+else
+    PARALLEL_FLAG := -j
+endif
+
+
+.PHONY: all clean help
+
+all:
+	$(call create_dir,$(RAYLIB_TARGET_DIR))
+	$(call create_dir,$(RAYLIB_OBJ_DIR))
+	$(call create_dir,$(SNAKE_TARGET_DIR))
+	$(call create_dir,$(SNAKE_OBJ_DIR))
+	$(SILENT) $(MAKE) -C Dependencies/raylib/src -f Makefile.Web PLATFORM=PLATFORM_WEB $(PARALLEL_FLAG)
+	$(SILENT) mv $(RAYLIB_SRC)/libraylib.a $(RAYLIB_TARGET)
+	$(SILENT) mv $(RAYLIB_SRC)/raudio.o $(RAYLIB_OBJ_DIR)/raudio.o
+	$(SILENT) mv $(RAYLIB_SRC)/rcore.o $(RAYLIB_OBJ_DIR)/rcore.o
+	$(SILENT) mv $(RAYLIB_SRC)/rmodels.o $(RAYLIB_OBJ_DIR)/rmodels.o
+	$(SILENT) mv $(RAYLIB_SRC)/rshapes.o $(RAYLIB_OBJ_DIR)/rshapes.o
+	$(SILENT) mv $(RAYLIB_SRC)/rtext.o $(RAYLIB_OBJ_DIR)/rtext.o
+	$(SILENT) mv $(RAYLIB_SRC)/rtextures.o $(RAYLIB_OBJ_DIR)/rtextures.o
+	$(SILENT) mv $(RAYLIB_SRC)/utils.o $(RAYLIB_OBJ_DIR)/utils.o
+	$(SILENT) $(CC) -o $(SNAKE_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
+	$(SILENT) $(CC) -o $(SNAKE_TARGET) $(CC_FLAGS) $(SNAKE_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3 -s ASYNCIFY
+
+
+clean:
+	@echo Cleaning Snake
+ifeq (posix,$(SHELLTYPE))
+	$(SILENT) rm -rf  $(RAYLIB_TARGET_DIR)
+	$(SILENT) rm -rf $(RAYLIB_OBJ_DIR)
+	$(SILENT) rm -rf  $(SNAKE_TARGET_DIR)
+	$(SILENT) rm -rf $(SNAKE_OBJ_DIR)
+else
+	$(SILENT) if exist $(subst /,\\,$(RAYLIB_TARGET_DIR)) rmdir /s /q $(subst /,\\,$(RAYLIB_TARGET_DIR))
+	$(SILENT) if exist $(subst /,\\,$(RAYLIB_OBJ_DIR)) rmdir /s /q $(subst /,\\,$(RAYLIB_OBJ_DIR))
+	$(SILENT) if exist $(subst /,\\,$(SNAKE_TARGET_DIR)) rmdir /s /q $(subst /,\\,$(SNAKE_TARGET_DIR))
+	$(SILENT) if exist $(subst /,\\,$(SNAKE_OBJ_DIR)) rmdir /s /q $(subst /,\\,$(SNAKE_OBJ_DIR))
+endif
+
+
+help:
+	@echo "Usage: make [config=name] [target]"
+	@echo ""
+	@echo "CONFIGURATIONS:"
+	@echo "  debug"
+	@echo "  release"
+	@echo ""
+	@echo "TARGETS:"
+	@echo "   all (default)"
+	@echo "   clean"
