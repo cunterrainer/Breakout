@@ -582,8 +582,8 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
     menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
     menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit", WHITE, false);
-    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
-    menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails", WHITE, false);
+    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
+    menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails)", WHITE, false);
 
     menu_render_controll(font_size, TextFormat("(Q) Limit fps (%d)", app->frame_rate), app->limit_fps ? GREEN : RED, false);
     menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
@@ -602,7 +602,7 @@ enum State menu_show_controlls(const struct Application* app)
     menu_render_controll(font_size, "(DPAD or Left stick) Controll the paddle", WHITE, false);
     menu_render_controll(font_size, "(DPAD Up|Down) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(X) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
-    menu_render_controll(font_size, "(/\\) Reset the game (Doesn't reset the ball speed, wins and fails", WHITE, false);
+    menu_render_controll(font_size, "(/\\) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
     menu_render_controll(font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
 
     menu_render_controll(font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
