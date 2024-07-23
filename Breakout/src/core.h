@@ -3,6 +3,8 @@
 
 #if defined _WIN32 || defined __CYGWIN__ || defined __MINGW32__
     #define SYSTEM_WINDOWS
+#elif defined(__wasm__) || defined(__wasm32__) || defined(__wasm64__)
+    #define SYSTEM_WEB
 #elif defined(__APPLE__) || defined(__MACH__)
     #include <TargetConditionals.h>
     /* TARGET_OS_MAC exists on all the platforms
@@ -34,7 +36,9 @@
 #endif
 
 
-#ifdef __clang__
+#ifdef __EMSCRIPTEN__ // needs to be check first because emscripten defines __clang__
+    #define TOOLCHAIN_EMSCRIPTEN
+#elif defined(__clang__)
     #define TOOLCHAIN_CLANG
 #elif defined(__GNUC__) || defined(__GNUG__)
     #define TOOLCHAIN_GCC
@@ -53,6 +57,10 @@
     #define ARCHITECTURE_X86
 #elif defined __arm__ || defined __arm64__ || defined _M_ARM
     #define ARCHITECTURE_ARM
+elif defined __wasm32__
+    #define ARCHITECTURE_WASM32
+elif defined __wasm64__
+    #define ARCHITECTURE_WASM64
 #endif
 
 
