@@ -29,6 +29,7 @@ filter { "configurations:Release" }
     symbols "off"
     defines "NDEBUG"
     optimize "Speed"
+    flags "LinkTimeOptimization"
 filter {}
 
 -- only for visual studio

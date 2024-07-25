@@ -24,7 +24,8 @@ ifeq ($(config),debug)
 endif
 
 ifeq ($(config),release)
-	CC_FLAGS = -O2
+	CC_FLAGS = -O3 -ffast-math -ffunction-sections -fdata-sections
+	LD_FLAGS = -flto -Wl,--gc-sections
 
 	RAYLIB_TARGET_DIR = BIN/emcc/release/raylib/bin
 	RAYLIB_OBJ_DIR = BIN/emcc/release/raylib/bin-int
@@ -80,7 +81,7 @@ all:
 	$(SILENT) mv $(RAYLIB_SRC)/rtextures.o $(RAYLIB_OBJ_DIR)/rtextures.o
 	$(SILENT) mv $(RAYLIB_SRC)/utils.o $(RAYLIB_OBJ_DIR)/utils.o
 	$(SILENT) $(CC) -o $(BREAKOUT_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
-	$(SILENT) $(CC) -o $(BREAKOUT_TARGET) $(CC_FLAGS) $(BREAKOUT_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
+	$(SILENT) $(CC) -o $(BREAKOUT_TARGET) $(CXX_FLAGS) $(LD_FLAGS) $(BREAKOUT_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
 
 
 clean:

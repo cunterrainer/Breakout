@@ -46,6 +46,21 @@ project "Breakout"
         }
         disablewarnings { "unused-parameter", "conversion", "missing-field-initializers", "unknown-warning-option" }
 
+    filter { "configurations:Release", "toolset:gcc*" }
+        buildoptions { "-ffunction-sections", "-fdata-sections" } -- places each function and data item in its own section
+        linkoptions { "-Wl,--gc-sections" } -- remove unused sections (code)
+
+    filter { "system:linux or system:macosx", "configurations:Release", "toolset:clang*" }
+        buildoptions { "-ffunction-sections", "-fdata-sections" } -- places each function and data item in its own section
+        linkoptions { "-Wl,--gc-sections" } -- remove unused sections (code)
+
+    filter { "system:windows", "configurations:Release", "toolset:clang*" }
+        buildoptions { "-ffunction-sections", "-fdata-sections" } -- places each function and data item in its own section
+        linkoptions { "-fuse-ld=lld", "-Wl,/OPT:REF,/OPT:ICF" } -- remove unused sections (code)
+
+    filter { "configurations:Release", "toolset:msc*" }
+        linkoptions { "/OPT:REF", "/OPT:ICF" } -- remove unused sections (code)
+
     filter "toolset:gcc*"
         warnings "Extra"
         externalwarnings "Off"
