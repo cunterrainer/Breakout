@@ -60,7 +60,7 @@ This project utilizes Premake as its build system, offering seamless integration
 ## Clone the repository
 
 ``` bash
-git clone https://github.com/pyvyx/Breakout.git
+git clone https://github.com/cunterrainer/Breakout.git
 ```
 ``` bash
 cd Breakout
