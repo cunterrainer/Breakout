@@ -57,9 +57,9 @@
     #define ARCHITECTURE_X86
 #elif defined __arm__ || defined __arm64__ || defined _M_ARM
     #define ARCHITECTURE_ARM
-elif defined __wasm32__
+#elif defined __wasm32__
     #define ARCHITECTURE_WASM32
-elif defined __wasm64__
+#elif defined __wasm64__
     #define ARCHITECTURE_WASM64
 #endif
 
