@@ -714,6 +714,7 @@ void on_app_resize(struct Application* app, int new_width, int new_height)
     app->font_size_menu = app_transform(app->font_size_menu, MAX(app->width, app->height), MAX(new_width, new_height));
     app->width = new_width;
     app->height = new_height;
+    renderer_resize(&app->renderer, new_width, new_height);
 }
 
 

@@ -31,6 +31,11 @@ static inline void renderer_shutdown(struct Renderer renderer)
     hardware_renderer_shutdown();
 }
 
+static inline void renderer_resize(struct Renderer* renderer, int new_width, int new_height)
+{
+    software_renderer_resize(&renderer->software_renderer, new_width, new_height);
+}
+
 static inline void renderer_swap_render_mode(struct Renderer* renderer)
 {
     if (renderer->mode == Hardware)

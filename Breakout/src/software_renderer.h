@@ -1,9 +1,12 @@
 #ifndef SOFTWARE_RENDERER_H
 #define SOFTWARE_RENDERER_H
 
+#include "stdlib.h"
+
 #include "raylib.h"
 
-unsigned char g_SoftwareRendererFramebuffer[1200*750*4];
+//unsigned char g_SoftwareRendererFramebuffer[1200*750*4];
+unsigned char* g_SoftwareRendererFramebuffer = NULL;
 Texture2D g_SoftwareRendererTexture;
 
 struct SoftwareRenderer {
@@ -17,6 +20,8 @@ struct SoftwareRenderer {
 
 struct SoftwareRenderer software_renderer_init(int width, int height)
 {
+    g_SoftwareRendererFramebuffer = (unsigned char*)malloc(width * height * 4 * sizeof(unsigned char));
+
     Image image = {
         .data = g_SoftwareRendererFramebuffer,
         .width = width,
@@ -39,9 +44,34 @@ struct SoftwareRenderer software_renderer_init(int width, int height)
 
 static inline void software_renderer_shutdown(struct SoftwareRenderer renderer)
 {
+    if (g_SoftwareRendererFramebuffer != NULL)
+        free(g_SoftwareRendererFramebuffer);
+
     UnloadTexture(g_SoftwareRendererTexture); // Free GPU texture
     UnloadImage(renderer.font_image);         // Free CPU image copy
     UnloadImageColors(renderer.font_pixels);
+}
+
+
+static inline void software_renderer_resize(struct SoftwareRenderer* renderer, int new_width, int new_height)
+{
+    unsigned char* tmp = (unsigned char*)realloc(g_SoftwareRendererFramebuffer, new_width * new_height * 4 * sizeof(unsigned char));
+    if (tmp != NULL)
+    {
+        renderer->width = new_width;
+        renderer->height = new_height;
+        g_SoftwareRendererFramebuffer = tmp;
+
+        UnloadTexture(g_SoftwareRendererTexture);
+        Image image = {
+            .data = g_SoftwareRendererFramebuffer,
+            .width = new_width,
+            .height = new_height,
+            .mipmaps = 1,
+            .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+        };
+        g_SoftwareRendererTexture = LoadTextureFromImage(image);
+    }
 }
 
 
