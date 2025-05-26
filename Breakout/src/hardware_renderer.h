@@ -33,4 +33,18 @@ void hardware_renderer_draw_triangle(Vector2 v1, Vector2 v2, Vector2 v3, Color c
     DrawTriangle(v1, v2, v3, color);
 }
 
+void hardware_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
+{
+    DrawLineV(v1, v2, color);
+}
+
+void hardware_renderer_draw_rectangle_lines_ex(Rectangle rec, float thickness, Color color)
+{
+    DrawRectangleLinesEx(rec, thickness, color);
+}
+
+void hardware_renderer_draw_circle_lines_v(Vector2 center, float radius, Color color)
+{
+    DrawCircleLinesV(center, radius, color);
+}
 #endif // HARDWARE_RENDERER_H

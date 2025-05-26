@@ -64,4 +64,28 @@ void renderer_draw_triangle(enum RenderMode mode, Vector2 v1, Vector2 v2, Vector
         software_renderer_draw_triangle(v1, v2, v3, color);
 }
 
+void renderer_draw_line_v(enum RenderMode mode, Vector2 v1, Vector2 v2, Color color)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_line_v(v1, v2, color);
+    else
+        software_renderer_draw_line_v(v1, v2, color);
+}
+
+void renderer_draw_rectangle_lines_ex(enum RenderMode mode, Rectangle rec, float thickness, Color color)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_rectangle_lines_ex(rec, thickness, color);
+    else
+        software_renderer_draw_rectangle_lines_ex(rec, (int)thickness, color);
+}
+
+void renderer_draw_circle_lines_v(enum RenderMode mode, Vector2 center, float radius, Color color)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_circle_lines_v(center, radius, color);
+    else
+        software_renderer_draw_circle_lines_v(center, radius, color);
+}
+
 #endif // RENDERER_H

@@ -509,16 +509,16 @@ void game_render(const struct GameObjects* game_objects, Vector2 ball_p1, Vector
 
 void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
 {
-    DrawLineV(ball_p1, game_objects->ball.tail.p1, tail_color);
-    DrawLineV(ball_p2, game_objects->ball.tail.p2, tail_color);
-    DrawLineV(game_objects->ball.tail.p1, game_objects->ball.tail.p3, tail_color);
-    DrawLineV(game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+    renderer_draw_line_v(RENDER_MODE, ball_p1, game_objects->ball.tail.p1, tail_color);
+    renderer_draw_line_v(RENDER_MODE, ball_p2, game_objects->ball.tail.p2, tail_color);
+    renderer_draw_line_v(RENDER_MODE, game_objects->ball.tail.p1, game_objects->ball.tail.p3, tail_color);
+    renderer_draw_line_v(RENDER_MODE, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
 
-    DrawRectangleLinesEx(game_objects->paddle, 1.f, RED);
-    DrawCircleLinesV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+    renderer_draw_rectangle_lines_ex(RENDER_MODE, game_objects->paddle, 1.f, RED);
+    renderer_draw_circle_lines_v(RENDER_MODE, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        DrawRectangleLinesEx(game_objects->bricks[i].rec, 1.f, game_objects->bricks[i].col);
+        renderer_draw_rectangle_lines_ex(RENDER_MODE, game_objects->bricks[i].rec, 1.f, game_objects->bricks[i].col);
     }
 }
 

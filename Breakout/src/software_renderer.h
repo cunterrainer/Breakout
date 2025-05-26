@@ -229,4 +229,99 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
     }
 }
 
+
+int software_renderer_abs(int x)
+{
+    return x < 0 ? -x : x;
+}
+
+
+void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
+{
+    int x0 = (int)v1.x;
+    int y0 = (int)v1.y;
+    int x1 = (int)v2.x;
+    int y1 = (int)v2.y;
+
+    int dx = software_renderer_abs(x1 - x0);
+    int dy = software_renderer_abs(y1 - y0);
+
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    int err = dx - dy;
+
+    while (true)
+    {
+        PutPixelAlpha(x0, y0, color);  // Use your alpha blending pixel function
+
+        if (x0 == x1 && y0 == y1) break;
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x0 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+void software_renderer_draw_rectangle_lines_ex(Rectangle rec, int thickness, Color color)
+{
+    int x = (int)rec.x;
+    int y = (int)rec.y;
+    int w = (int)rec.width;
+    int h = (int)rec.height;
+
+    for (int i = 0; i < thickness; i++)
+    {
+        // Top line
+        software_renderer_draw_line_v((Vector2) { x + i, y + i }, (Vector2) { x + w - 1 - i, y + i }, color);
+        // Bottom line
+        software_renderer_draw_line_v((Vector2) { x + i, y + h - 1 - i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
+        // Left line
+        software_renderer_draw_line_v((Vector2) { x + i, y + i }, (Vector2) { x + i, y + h - 1 - i }, color);
+        // Right line
+        software_renderer_draw_line_v((Vector2) { x + w - 1 - i, y + i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
+    }
+}
+
+
+void software_renderer_draw_circle_lines_v(Vector2 center, float radius, Color color)
+{
+    int cx = (int)center.x;
+    int cy = (int)center.y;
+    int r = (int)radius;
+
+    int x = r;
+    int y = 0;
+    int err = 0;
+
+    while (x >= y)
+    {
+        PutPixelAlpha(cx + x, cy + y, color);
+        PutPixelAlpha(cx + y, cy + x, color);
+        PutPixelAlpha(cx - y, cy + x, color);
+        PutPixelAlpha(cx - x, cy + y, color);
+        PutPixelAlpha(cx - x, cy - y, color);
+        PutPixelAlpha(cx - y, cy - x, color);
+        PutPixelAlpha(cx + y, cy - x, color);
+        PutPixelAlpha(cx + x, cy - y, color);
+
+        y += 1;
+        if (err <= 0)
+        {
+            err += 2 * y + 1;
+        }
+        if (err > 0)
+        {
+            x -= 1;
+            err -= 2 * x + 1;
+        }
+    }
+}
+
 #endif // SOFTWARE_RENDERER_H
