@@ -18,7 +18,7 @@
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
 
-#define RENDER_MODE Hardware
+int RENDER_MODE = Hardware;
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -584,16 +584,18 @@ enum State menu_show_controlls(const struct Application* app)
     renderer_draw_rectangle(RENDER_MODE, app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
     renderer_draw_rectangle(RENDER_MODE, 0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
 
-    const int font_size = (app->height - 10) / 33;
+    const int font_size = (app->height - 10) / 34;
+    renderer_draw_text(RENDER_MODE, RENDER_MODE == Hardware ? "Render mode: Hardware" : "Render mode: Software", app->width - 260, 10, font_size, WHITE);
     menu_render_controll(font_size, "Keyboard", WHITE, false);
     menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
-    menu_render_controll(font_size, "(W|A|Up|Down|1|2) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(font_size, "(W|S|Up|Down|1|2) Increase/Decrease the ball's speed", WHITE, false);
     menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
     menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
     menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
     menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit", WHITE, false);
     menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
     menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails)", WHITE, false);
+    menu_render_controll(font_size, "(J) Change render mode (Software/Hardware)", WHITE, false);
 
     menu_render_controll(font_size, TextFormat("(Q) Limit fps (%d)", app->frame_rate), app->limit_fps ? GREEN : RED, false);
     menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
@@ -904,6 +906,14 @@ void on_app_key_input(struct Application* app)
     {
         app->game_objects.ball.speed -= 10.f;
         app->game_objects.ball.speed = MAX(app->game_objects.ball.speed, 1);
+    }
+
+    if (IsKeyPressed(KEY_J))
+    {
+        if (RENDER_MODE == Hardware)
+            RENDER_MODE = Software;
+        else
+            RENDER_MODE = Hardware;
     }
 }
 
