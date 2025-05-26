@@ -3,36 +3,45 @@
 
 #include "raylib.h"
 
-static int g_Width = 1200;
-static int g_Height = 750;
-static unsigned char g_SoftwareRendererFramebuffer[1200*750*4];
-static Texture2D g_SoftwareRendererTexture;
-static Font g_Font;
-static Image g_FontImage;
-static Color* g_FontPixels;
+unsigned char g_SoftwareRendererFramebuffer[1200*750*4];
+Texture2D g_SoftwareRendererTexture;
 
-void software_renderer_init()
+struct SoftwareRenderer {
+    int width;
+    int height;
+    Font font;
+    Image font_image;
+    Color* font_pixels;
+};
+
+
+struct SoftwareRenderer software_renderer_init(int width, int height)
 {
     Image image = {
         .data = g_SoftwareRendererFramebuffer,
-        .width = 1200,
-        .height = 750,
+        .width = width,
+        .height = height,
         .mipmaps = 1,
         .format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
     };
-
     g_SoftwareRendererTexture = LoadTextureFromImage(image);
-    g_Font = GetFontDefault();
-    g_FontImage = LoadImageFromTexture(g_Font.texture);
-    g_FontPixels = LoadImageColors(g_FontImage);
+
+
+    struct SoftwareRenderer renderer;
+    renderer.width = width;
+    renderer.height = height;
+    renderer.font = GetFontDefault();
+    renderer.font_image = LoadImageFromTexture(renderer.font.texture);
+    renderer.font_pixels = LoadImageColors(renderer.font_image);
+    return renderer;
 }
 
 
-inline void software_renderer_shutdown()
+inline void software_renderer_shutdown(struct SoftwareRenderer renderer)
 {
-    UnloadTexture(g_SoftwareRendererTexture);   // Free GPU texture
-    UnloadImage(g_FontImage);                   // Free CPU image copy
-    UnloadImageColors(g_FontPixels);
+    UnloadTexture(g_SoftwareRendererTexture); // Free GPU texture
+    UnloadImage(renderer.font_image);         // Free CPU image copy
+    UnloadImageColors(renderer.font_pixels);
 }
 
 
@@ -42,9 +51,9 @@ inline void software_renderer_begin_drawing()
 }
 
 
-void software_renderer_clear_background(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+void software_renderer_clear_background(const struct SoftwareRenderer* renderer, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
-    for (int i = 0; i < g_Width*g_Height*4; i += 4)
+    for (int i = 0; i < renderer->width*renderer->height*4; i += 4)
     {
         g_SoftwareRendererFramebuffer[i] = r;
         g_SoftwareRendererFramebuffer[i+1] = g;
@@ -68,11 +77,11 @@ inline int software_renderer_abs(int x)
 }
 
 
-inline void software_renderer_put_pixel(int x, int y, Color color)
+inline void software_renderer_put_pixel(const struct SoftwareRenderer* renderer, int x, int y, Color color)
 {
-    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
+    if (x < 0 || x >= renderer->width || y < 0 || y >= renderer->height) return;
 
-    const int index = (y * g_Width + x) * 4;
+    const int index = (y * renderer->width + x) * 4;
     g_SoftwareRendererFramebuffer[index + 0] = color.r;
     g_SoftwareRendererFramebuffer[index + 1] = color.g;
     g_SoftwareRendererFramebuffer[index + 2] = color.b;
@@ -81,11 +90,11 @@ inline void software_renderer_put_pixel(int x, int y, Color color)
 
 
 // Helper: blend a pixel with alpha blending into the framebuffer
-void software_renderer_put_pixel_alpha(int x, int y, Color color)
+void software_renderer_put_pixel_alpha(const struct SoftwareRenderer* renderer, int x, int y, Color color)
 {
-    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
+    if (x < 0 || x >= renderer->width || y < 0 || y >= renderer->height) return;
 
-    const int index = (y * g_Width + x) * 4;
+    const int index = (y * renderer->width + x) * 4;
 
     const unsigned char dstR = g_SoftwareRendererFramebuffer[index + 0];
     const unsigned char dstG = g_SoftwareRendererFramebuffer[index + 1];
@@ -107,19 +116,19 @@ void software_renderer_put_pixel_alpha(int x, int y, Color color)
 }
 
 
-void software_renderer_draw_text(const char* text, int x, int y, int fontSize, Color color)
+void software_renderer_draw_text(const struct SoftwareRenderer* renderer, const char* text, int x, int y, int fontSize, Color color)
 {
     int cursorX = x;
-    const float scale = (float)fontSize / (float)g_Font.baseSize;
+    const float scale = (float)fontSize / (float)renderer->font.baseSize;
 
     for (int i = 0; text[i] != '\0'; ++i)
     {
-        const unsigned char c = text[i];
+        const unsigned char c = (unsigned char)text[i];
         int glyphIndex = -1;
 
-        for (int g = 0; g < g_Font.glyphCount; g++)
+        for (int g = 0; g < renderer->font.glyphCount; g++)
         {
-            if (g_Font.glyphs[g].value == c)
+            if (renderer->font.glyphs[g].value == c)
             {
                 glyphIndex = g;
                 break;
@@ -127,8 +136,8 @@ void software_renderer_draw_text(const char* text, int x, int y, int fontSize, C
         }
         if (glyphIndex == -1) continue;
 
-        const Rectangle glyphRec = g_Font.recs[glyphIndex];
-        const GlyphInfo glyph = g_Font.glyphs[glyphIndex];
+        const Rectangle glyphRec = renderer->font.recs[glyphIndex];
+        const GlyphInfo glyph = renderer->font.glyphs[glyphIndex];
 
         // Loop over glyph pixels
         for (int py = 0; py < (int)glyphRec.height; py++)
@@ -137,7 +146,7 @@ void software_renderer_draw_text(const char* text, int x, int y, int fontSize, C
             {
                 const int gx = (int)(glyphRec.x + px);
                 const int gy = (int)(glyphRec.y + py);
-                const Color texel = g_FontPixels[gy * g_FontImage.width + gx];
+                const Color texel = renderer->font_pixels[gy * renderer->font_image.width + gx];
 
                 if (texel.a == 0) continue;
 
@@ -153,20 +162,20 @@ void software_renderer_draw_text(const char* text, int x, int y, int fontSize, C
                 {
                     for (int dx = 0; dx < blockSize; dx++)
                     {
-                        software_renderer_put_pixel(baseX + dx, baseY + dy, color);
+                        software_renderer_put_pixel(renderer, baseX + dx, baseY + dy, color);
                     }
                 }
             }
         }
 
         // Advance the cursor
-        const float advance = (float)(glyph.advanceX ? glyph.advanceX : glyphRec.width + g_Font.glyphPadding + 1);
+        const float advance = (float)(glyph.advanceX ? glyph.advanceX : glyphRec.width + renderer->font.glyphPadding + 1);
         cursorX += (int)(advance * scale + 0.5f);
     }
 }
 
 
-void software_renderer_draw_rectangle_rec(Rectangle rec, Color color)
+void software_renderer_draw_rectangle_rec(const struct SoftwareRenderer* renderer, Rectangle rec, Color color)
 {
     int startX = (int)rec.x;
     int startY = (int)rec.y;
@@ -175,14 +184,14 @@ void software_renderer_draw_rectangle_rec(Rectangle rec, Color color)
 
     if (startX < 0) startX = 0;
     if (startY < 0) startY = 0;
-    if (endX > g_Width) endX = g_Width;
-    if (endY > g_Height) endY = g_Height;
+    if (endX > renderer->width) endX = renderer->width;
+    if (endY > renderer->height) endY = renderer->height;
 
     for (int y = startY; y < endY; y++)
     {
         for (int x = startX; x < endX; x++)
         {
-            int index = (y * g_Width + x) * 4;
+            int index = (y * renderer->width + x) * 4;
             g_SoftwareRendererFramebuffer[index + 0] = color.r;
             g_SoftwareRendererFramebuffer[index + 1] = color.g;
             g_SoftwareRendererFramebuffer[index + 2] = color.b;
@@ -192,7 +201,7 @@ void software_renderer_draw_rectangle_rec(Rectangle rec, Color color)
 }
 
 
-void software_renderer_draw_fps(int x, int y)
+void software_renderer_draw_fps(const struct SoftwareRenderer* renderer, int x, int y)
 {
     Color color = LIME;                         // Good FPS
     const int fps = GetFPS();
@@ -203,11 +212,11 @@ void software_renderer_draw_fps(int x, int y)
     char fpsText[16];
     snprintf(fpsText, sizeof(fpsText), "%d FPS", fps);
 
-    software_renderer_draw_text(fpsText, x, y, 20, color);
+    software_renderer_draw_text(renderer, fpsText, x, y, 20, color);
 }
 
 
-void software_renderer_draw_rectangle(int x, int y, int width, int height, Color color)
+void software_renderer_draw_rectangle(const struct SoftwareRenderer* renderer, int x, int y, int width, int height, Color color)
 {
     for (int row = 0; row < height; ++row)
     {
@@ -217,9 +226,9 @@ void software_renderer_draw_rectangle(int x, int y, int width, int height, Color
             const int py = y + row;
 
             // Bounds check
-            if (px >= 0 && px < g_Width && py >= 0 && py < g_Height)
+            if (px >= 0 && px < renderer->width && py >= 0 && py < renderer->height)
             {
-                const int index = (py * g_Width + px) * 4; // 4 bytes per pixel (RGBA)
+                const int index = (py * renderer->width + px) * 4; // 4 bytes per pixel (RGBA)
 
                 g_SoftwareRendererFramebuffer[index + 0] = color.r;
                 g_SoftwareRendererFramebuffer[index + 1] = color.g;
@@ -231,7 +240,7 @@ void software_renderer_draw_rectangle(int x, int y, int width, int height, Color
 }
 
 
-void software_renderer_draw_circle_v(Vector2 center, float radius, Color color)
+void software_renderer_draw_circle_v(const struct SoftwareRenderer* renderer, Vector2 center, float radius, Color color)
 {
     const int cx = (int)center.x;
     const int cy = (int)center.y;
@@ -247,8 +256,8 @@ void software_renderer_draw_circle_v(Vector2 center, float radius, Color color)
     // Clamp to screen bounds
     if (minX < 0) minX = 0;
     if (minY < 0) minY = 0;
-    if (maxX > g_Width) maxX = g_Width;
-    if (maxY > g_Height) maxY = g_Height;
+    if (maxX > renderer->width) maxX = renderer->width;
+    if (maxY > renderer->height) maxY = renderer->height;
 
     for (int y = minY; y < maxY; y++)
     {
@@ -259,7 +268,7 @@ void software_renderer_draw_circle_v(Vector2 center, float radius, Color color)
 
             if (dx*dx + dy*dy <= rSquared)
             {
-                const int index = (y * g_Width + x) * 4;
+                const int index = (y * renderer->width + x) * 4;
                 g_SoftwareRendererFramebuffer[index + 0] = color.r;
                 g_SoftwareRendererFramebuffer[index + 1] = color.g;
                 g_SoftwareRendererFramebuffer[index + 2] = color.b;
@@ -279,7 +288,7 @@ inline void software_renderer_swap_vec2(Vector2 *a, Vector2 *b)
 }
 
 
-void software_renderer_draw_texture_ex(Image img, Vector2 pos, float scale, Color tint)
+void software_renderer_draw_texture_ex(const struct SoftwareRenderer* renderer, Image img, Vector2 pos, float scale, Color tint)
 {
     const Color* const pixels = (Color*)img.data;
 
@@ -314,9 +323,9 @@ void software_renderer_draw_texture_ex(Image img, Vector2 pos, float scale, Colo
             const int dstY = (int)pos.y + y;
 
             // Bounds check
-            if (dstX >= 0 && dstX < g_Width && dstY >= 0 && dstY < g_Height)
+            if (dstX >= 0 && dstX < renderer->width && dstY >= 0 && dstY < renderer->height)
             {
-                int index = (dstY * g_Width + dstX) * 4;
+                int index = (dstY * renderer->width + dstX) * 4;
                 g_SoftwareRendererFramebuffer[index + 0] = out.r;
                 g_SoftwareRendererFramebuffer[index + 1] = out.g;
                 g_SoftwareRendererFramebuffer[index + 2] = out.b;
@@ -328,9 +337,9 @@ void software_renderer_draw_texture_ex(Image img, Vector2 pos, float scale, Colo
 
 
 // Helper function to draw a horizontal line between two x values at a given y
-inline void software_renderer_draw_horizontal_line(int y, int x0, int x1, Color color)
+inline void software_renderer_draw_horizontal_line(const struct SoftwareRenderer* renderer, int y, int x0, int x1, Color color)
 {
-    if (y < 0 || y >= g_Height) return;
+    if (y < 0 || y >= renderer->height) return;
 
     if (x0 > x1)
     {
@@ -340,17 +349,17 @@ inline void software_renderer_draw_horizontal_line(int y, int x0, int x1, Color 
     }
 
     if (x0 < 0) x0 = 0;
-    if (x1 > g_Width) x1 = g_Width;
+    if (x1 > renderer->width) x1 = renderer->width;
 
     for (int x = x0; x < x1; x++)
     {
-        software_renderer_put_pixel_alpha(x, y, color);
+        software_renderer_put_pixel_alpha(renderer, x, y, color);
     }
 }
 
 
 // Main triangle drawing function
-void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color color)
+void software_renderer_draw_triangle(const struct SoftwareRenderer* renderer, Vector2 v0, Vector2 v1, Vector2 v2, Color color)
 {
     // Sort vertices by y (v0.y <= v1.y <= v2.y)
     if (v0.y > v1.y) software_renderer_swap_vec2(&v0, &v1);
@@ -373,7 +382,7 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
 
         for (int y = (int)v0.y; y <= (int)v2.y; y++)
         {
-            software_renderer_draw_horizontal_line(y, (int)curx_left, (int)curx_right, color);
+            software_renderer_draw_horizontal_line(renderer, y, (int)curx_left, (int)curx_right, color);
             curx_left += inv_slope_left;
             curx_right += inv_slope_right;
         }
@@ -392,7 +401,7 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
 
         for (int y = (int)v0.y; y <= (int)v1.y; y++)
         {
-            software_renderer_draw_horizontal_line(y, (int)curx_left, (int)curx_right, color);
+            software_renderer_draw_horizontal_line(renderer, y, (int)curx_left, (int)curx_right, color);
             curx_left += inv_slope_left;
             curx_right += inv_slope_right;
         }
@@ -407,13 +416,13 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
             v1.y
         };
 
-        software_renderer_draw_triangle(v0, v1, vi, color);
-        software_renderer_draw_triangle(v1, vi, v2, color);
+        software_renderer_draw_triangle(renderer, v0, v1, vi, color);
+        software_renderer_draw_triangle(renderer, v1, vi, v2, color);
     }
 }
 
 
-void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
+void software_renderer_draw_line_v(const struct SoftwareRenderer* renderer, Vector2 v1, Vector2 v2, Color color)
 {
     int x0 = (int)v1.x;
     int y0 = (int)v1.y;
@@ -430,7 +439,7 @@ void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
 
     while (true)
     {
-        software_renderer_put_pixel(x0, y0, color);  // Use your alpha blending pixel function
+        software_renderer_put_pixel(renderer, x0, y0, color);  // Use your alpha blending pixel function
 
         if (x0 == x1 && y0 == y1) break;
 
@@ -448,7 +457,7 @@ void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
     }
 }
 
-void software_renderer_draw_rectangle_lines_ex(Rectangle rec, int thickness, Color color)
+void software_renderer_draw_rectangle_lines_ex(const struct SoftwareRenderer* renderer, Rectangle rec, int thickness, Color color)
 {
     const int x = (int)rec.x;
     const int y = (int)rec.y;
@@ -458,18 +467,18 @@ void software_renderer_draw_rectangle_lines_ex(Rectangle rec, int thickness, Col
     for (int i = 0; i < thickness; i++)
     {
         // Top line
-        software_renderer_draw_line_v((Vector2) { x + i, y + i }, (Vector2) { x + w - 1 - i, y + i }, color);
+        software_renderer_draw_line_v(renderer, (Vector2) { x + i, y + i }, (Vector2) { x + w - 1 - i, y + i }, color);
         // Bottom line
-        software_renderer_draw_line_v((Vector2) { x + i, y + h - 1 - i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
+        software_renderer_draw_line_v(renderer, (Vector2) { x + i, y + h - 1 - i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
         // Left line
-        software_renderer_draw_line_v((Vector2) { x + i, y + i }, (Vector2) { x + i, y + h - 1 - i }, color);
+        software_renderer_draw_line_v(renderer, (Vector2) { x + i, y + i }, (Vector2) { x + i, y + h - 1 - i }, color);
         // Right line
-        software_renderer_draw_line_v((Vector2) { x + w - 1 - i, y + i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
+        software_renderer_draw_line_v(renderer, (Vector2) { x + w - 1 - i, y + i }, (Vector2) { x + w - 1 - i, y + h - 1 - i }, color);
     }
 }
 
 
-void software_renderer_draw_circle_lines_v(Vector2 center, float radius, Color color)
+void software_renderer_draw_circle_lines_v(const struct SoftwareRenderer* renderer, Vector2 center, float radius, Color color)
 {
     const int cx = (int)center.x;
     const int cy = (int)center.y;
@@ -481,14 +490,14 @@ void software_renderer_draw_circle_lines_v(Vector2 center, float radius, Color c
 
     while (x >= y)
     {
-        software_renderer_put_pixel(cx + x, cy + y, color);
-        software_renderer_put_pixel(cx + y, cy + x, color);
-        software_renderer_put_pixel(cx - y, cy + x, color);
-        software_renderer_put_pixel(cx - x, cy + y, color);
-        software_renderer_put_pixel(cx - x, cy - y, color);
-        software_renderer_put_pixel(cx - y, cy - x, color);
-        software_renderer_put_pixel(cx + y, cy - x, color);
-        software_renderer_put_pixel(cx + x, cy - y, color);
+        software_renderer_put_pixel(renderer, cx + x, cy + y, color);
+        software_renderer_put_pixel(renderer, cx + y, cy + x, color);
+        software_renderer_put_pixel(renderer, cx - y, cy + x, color);
+        software_renderer_put_pixel(renderer, cx - x, cy + y, color);
+        software_renderer_put_pixel(renderer, cx - x, cy - y, color);
+        software_renderer_put_pixel(renderer, cx - y, cy - x, color);
+        software_renderer_put_pixel(renderer, cx + y, cy - x, color);
+        software_renderer_put_pixel(renderer, cx + x, cy - y, color);
 
         y += 1;
         if (err <= 0)

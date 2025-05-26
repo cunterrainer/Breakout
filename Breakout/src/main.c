@@ -18,8 +18,6 @@
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
 
-int RENDER_MODE = Hardware;
-
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(*a))
@@ -104,6 +102,7 @@ struct SoundObjects
 
 struct Application
 {
+    struct Renderer renderer;
     struct GameObjects game_objects;
     struct GameSettings game_settings;
     struct SoundObjects sound_objects;
@@ -443,7 +442,7 @@ inline Vector2 max_vector_y(Vector2 v1, Vector2 v2)
 }
 
 
-void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
+void draw_triangle(const struct Renderer* renderer, Vector2 p1, Vector2 p2, Vector2 p3, Color color)
 {
     Vector2 first;
     Vector2 second;
@@ -490,37 +489,37 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
         third = max_vector_x(p1, p2);
     }
 
-    renderer_draw_triangle(RENDER_MODE, first, second, third, color);
+    renderer_draw_triangle(renderer, first, second, third, color);
 }
 
 
-void game_render(const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
+void game_render(const struct Renderer* renderer, const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
 {
-    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
-    draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
-    draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+    draw_triangle(renderer, game_objects->ball.tail.p1, game_objects->ball.tail.p2, ball_p1, tail_color);
+    draw_triangle(renderer, ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
+    draw_triangle(renderer, game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
 
-    renderer_draw_rectangle_rec(RENDER_MODE, game_objects->paddle, RED);
-    renderer_draw_circle_v(RENDER_MODE, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+    renderer_draw_rectangle_rec(renderer, game_objects->paddle, RED);
+    renderer_draw_circle_v(renderer, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        renderer_draw_rectangle_rec(RENDER_MODE, game_objects->bricks[i].rec, game_objects->bricks[i].col);
+        renderer_draw_rectangle_rec(renderer, game_objects->bricks[i].rec, game_objects->bricks[i].col);
     }
 }
 
 
-void game_render_xray(const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
+void game_render_xray(const struct Renderer* renderer, const struct GameObjects* game_objects, Vector2 ball_p1, Vector2 ball_p2, Color tail_color)
 {
-    renderer_draw_line_v(RENDER_MODE, ball_p1, game_objects->ball.tail.p1, tail_color);
-    renderer_draw_line_v(RENDER_MODE, ball_p2, game_objects->ball.tail.p2, tail_color);
-    renderer_draw_line_v(RENDER_MODE, game_objects->ball.tail.p1, game_objects->ball.tail.p3, tail_color);
-    renderer_draw_line_v(RENDER_MODE, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
+    renderer_draw_line_v(renderer, ball_p1, game_objects->ball.tail.p1, tail_color);
+    renderer_draw_line_v(renderer, ball_p2, game_objects->ball.tail.p2, tail_color);
+    renderer_draw_line_v(renderer, game_objects->ball.tail.p1, game_objects->ball.tail.p3, tail_color);
+    renderer_draw_line_v(renderer, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
 
-    renderer_draw_rectangle_lines_ex(RENDER_MODE, game_objects->paddle, 1.f, RED);
-    renderer_draw_circle_lines_v(RENDER_MODE, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+    renderer_draw_rectangle_lines_ex(renderer, game_objects->paddle, 1.f, RED);
+    renderer_draw_circle_lines_v(renderer, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        renderer_draw_rectangle_lines_ex(RENDER_MODE, game_objects->bricks[i].rec, 1.f, game_objects->bricks[i].col);
+        renderer_draw_rectangle_lines_ex(renderer, game_objects->bricks[i].rec, 1.f, game_objects->bricks[i].col);
     }
 }
 
@@ -549,28 +548,28 @@ void on_game_render(const struct Application* app)
     static const Color tail_color = { .r = 200, .g = 200, .b = 200, .a = 70 };
     if (!app->x_ray)
     {
-        game_render(&app->game_objects, ball_p1, ball_p2, tail_color);
+        game_render(&app->renderer, &app->game_objects, ball_p1, ball_p2, tail_color);
     }
     else
     {
-        game_render_xray(&app->game_objects, ball_p1, ball_p2, tail_color);
+        game_render_xray(&app->renderer, &app->game_objects, ball_p1, ball_p2, tail_color);
     }
 
-    renderer_draw_text(RENDER_MODE, score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
+    renderer_draw_text(&app->renderer, score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
 
     if (app->game_settings.show_stats)
     {
         const char* ball_speed_str = TextFormat("W: %zu F: %zu %zu", app->wins, app->failes, (size_t)app->game_objects.ball.speed);
         const int speed_length = MeasureText(ball_speed_str, score_font_size);
-        renderer_draw_text(RENDER_MODE, ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
+        renderer_draw_text(&app->renderer, ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
     }
 }
 
 
-void menu_render_controll(int font_size, const char* text, Color color, bool reset)
+void menu_render_controll(const struct Renderer* renderer, int font_size, const char* text, Color color, bool reset)
 {
     static int y_pos = 10;
-    renderer_draw_text(RENDER_MODE, text, 10, y_pos, font_size, color);
+    renderer_draw_text(renderer, text, 10, y_pos, font_size, color);
     y_pos += font_size;
     if (reset) y_pos = 10;
 }
@@ -581,49 +580,49 @@ enum State menu_show_controlls(const struct Application* app)
     if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
-    renderer_draw_rectangle(RENDER_MODE, app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
-    renderer_draw_rectangle(RENDER_MODE, 0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
+    renderer_draw_rectangle(&app->renderer, app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
+    renderer_draw_rectangle(&app->renderer, 0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
 
     const int font_size = (app->height - 10) / 34;
-    renderer_draw_text(RENDER_MODE, RENDER_MODE == Hardware ? "Render mode: Hardware" : "Render mode: Software", app->width - 260, 10, font_size, WHITE);
-    menu_render_controll(font_size, "Keyboard", WHITE, false);
-    menu_render_controll(font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
-    menu_render_controll(font_size, "(W|S|Up|Down|1|2) Increase/Decrease the ball's speed", WHITE, false);
-    menu_render_controll(font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
-    menu_render_controll(font_size, "(ESC) Pause/resume the game", WHITE, false);
-    menu_render_controll(font_size, "(F3) Show controlls", WHITE, false);
-    menu_render_controll(font_size, "(.|,) Increase/Decrease the fps limit", WHITE, false);
-    menu_render_controll(font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
-    menu_render_controll(font_size, "(L) Reset the game (Including ball speed, wins and fails)", WHITE, false);
-    menu_render_controll(font_size, "(J) Change render mode (Software/Hardware)", WHITE, false);
+    renderer_draw_text(&app->renderer, app->renderer.mode == Hardware ? "Render mode: Hardware" : "Render mode: Software", app->width - 260, 10, font_size, WHITE);
+    menu_render_controll(&app->renderer, font_size, "Keyboard", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(A|D|Left|Right) Controll the paddle", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(W|S|Up|Down|1|2) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(Space) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(ESC) Pause/resume the game", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(F3) Show controlls", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(.|,) Increase/Decrease the fps limit", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(R) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(L) Reset the game (Including ball speed, wins and fails)", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(J) Change render mode (Software/Hardware)", WHITE, false);
 
-    menu_render_controll(font_size, TextFormat("(Q) Limit fps (%d)", app->frame_rate), app->limit_fps ? GREEN : RED, false);
-    menu_render_controll(font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
-    menu_render_controll(font_size, "(O) Auto move the paddle", app->game_settings.auto_move ? GREEN : RED, false);
-    menu_render_controll(font_size, "(U) Auto restart after success or failure", app->game_settings.auto_restart ? GREEN : RED, false);
-    menu_render_controll(font_size, "(G) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
-    menu_render_controll(font_size, "(P) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
-    menu_render_controll(font_size, "(B) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
-    menu_render_controll(font_size, "(I) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
-    menu_render_controll(font_size, "(F) Show fps", app->show_fps ? GREEN : RED, false);
-    menu_render_controll(font_size, "(M) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, TextFormat("(Q) Limit fps (%d)", app->frame_rate), app->limit_fps ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(X) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(O) Auto move the paddle", app->game_settings.auto_move ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(U) Auto restart after success or failure", app->game_settings.auto_restart ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(G) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(P) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(B) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(I) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(F) Show fps", app->show_fps ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(M) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
 
 
-    menu_render_controll(font_size, "", WHITE, false);
-    menu_render_controll(font_size, "Controller (PS4 layout as example)", WHITE, false);
-    menu_render_controll(font_size, "(DPAD or Left stick) Controll the paddle", WHITE, false);
-    menu_render_controll(font_size, "(DPAD Up|Down) Increase/Decrease the ball's speed", WHITE, false);
-    menu_render_controll(font_size, "(X) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
-    menu_render_controll(font_size, "(/\\) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
-    menu_render_controll(font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "Controller (PS4 layout as example)", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(DPAD or Left stick) Controll the paddle", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(DPAD Up|Down) Increase/Decrease the ball's speed", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(X) Launch the ball at the start of the game or resume after a failed attempt", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(/\\) Reset the game (Doesn't reset the ball speed, wins and fails)", WHITE, false);
+    menu_render_controll(&app->renderer, font_size, "(OPTIONS) Pause/resume the game", WHITE, false);
 
-    menu_render_controll(font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
-    menu_render_controll(font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
-    menu_render_controll(font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
-    menu_render_controll(font_size, "(R1) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
-    menu_render_controll(font_size, "(SHARE) Show fps", app->show_fps ? GREEN : RED, false);
-    menu_render_controll(font_size, "(Left Stick pressed) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
-    menu_render_controll(font_size, "(Right Stick pressed) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, true);
+    menu_render_controll(&app->renderer, font_size, "([]) Render only the outlines of objects", app->x_ray ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(O) Mute game audio", !app->sound_objects.failed.play ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(L1) Show the game stats (wins, fails, ball speed)", app->game_settings.show_stats ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(R1) Ball speed increases when scored", app->game_settings.increase_ball_speed ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(SHARE) Show fps", app->show_fps ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(Left Stick pressed) Paddle has hitbox", app->game_settings.paddle_has_hitbox ? GREEN : RED, false);
+    menu_render_controll(&app->renderer, font_size, "(Right Stick pressed) Bottom has hitbox (Game can no longer be lost)", app->game_settings.make_bottom_hitbox ? GREEN : RED, true);
     return app->state;
 }
 
@@ -634,13 +633,13 @@ enum State on_menu_update(const struct Application* app, const char* text)
     const int x_pos = (app->width - text_length) / 2;
     const int y_pos = (app->height - app->font_size_menu) / 2;
 
-    renderer_draw_texture_ex(RENDER_MODE, app->sound_objects.start.play ? app->volume_on : app->volume_off, app->sound_objects.start.play ? app->volume_on_img : app->volume_off_img, (Vector2) { 20.f, 10 }, 0, 0.08f, WHITE);
+    renderer_draw_texture_ex(&app->renderer, app->sound_objects.start.play ? app->volume_on : app->volume_off, app->sound_objects.start.play ? app->volume_on_img : app->volume_off_img, (Vector2) { 20.f, 10 }, 0, 0.08f, WHITE);
 
     switch (app->state)
     {
     case Menu:
     case Break:
-        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
+        renderer_draw_text(&app->renderer, text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
         if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         {
             play_sound(app->sound_objects.start);
@@ -648,10 +647,10 @@ enum State on_menu_update(const struct Application* app, const char* text)
         }
         return IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP) ? Reset : (IsKeyPressed(KEY_L) ? ResetAll : app->state);
     case Success:
-        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, GOLD);
+        renderer_draw_text(&app->renderer, text, x_pos, y_pos, app->font_size_menu, GOLD);
         break;
     case Failed:
-        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, RED);
+        renderer_draw_text(&app->renderer, text, x_pos, y_pos, app->font_size_menu, RED);
         break;
     default:
         break;
@@ -762,12 +761,7 @@ struct Application app_start()
     app.game_settings = (struct GameSettings){ .make_bottom_hitbox = false, .paddle_has_hitbox = true, .show_stats = false, .increase_ball_speed = true, .auto_restart = false, .auto_move = false };
 
     InitAudioDevice();
-    InitWindow(app.width, app.height, "Breakout");
-    SetWindowState(FLAG_WINDOW_RESIZABLE);
-    SetExitKey(KEY_NULL);
-    Image icon = LoadImageFromMemory(".png", sg_Icon_image, ARRAY_SIZE(sg_Icon_image));
-    SetWindowIcon(icon);
-    UnloadImage(icon);
+    app.renderer = renderer_init(app.width, app.height);
 
     app_load_audio(&app);
     app.volume_on_img = LoadImageFromMemory(".png", sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
@@ -775,14 +769,12 @@ struct Application app_start()
     app.volume_on = LoadTextureFromImage(app.volume_on_img);
     app.volume_off = LoadTextureFromImage(app.volume_off_img);
 
-    renderer_init();
     return app;
 }
 
 
 void app_shutdown(const struct Application* app)
 {
-    renderer_shutdown();
     UnloadImage(app->volume_on_img);
     UnloadImage(app->volume_off_img);
     UnloadTexture(app->volume_on);
@@ -793,7 +785,7 @@ void app_shutdown(const struct Application* app)
     UnloadSound(app->sound_objects.hit_brick.sound);
     UnloadSound(app->sound_objects.hit_paddle.sound);
     CloseAudioDevice();
-    TerminateWindow();
+    renderer_shutdown(app->renderer);
 }
 
 
@@ -910,10 +902,7 @@ void on_app_key_input(struct Application* app)
 
     if (IsKeyPressed(KEY_J))
     {
-        if (RENDER_MODE == Hardware)
-            RENDER_MODE = Software;
-        else
-            RENDER_MODE = Hardware;
+        renderer_swap_render_mode(&app->renderer);
     }
 }
 
@@ -929,12 +918,12 @@ void GameLoop(void* a)
         on_app_resize(app, GetScreenWidth(), GetScreenHeight());
     }
 
-    renderer_begin_drawing(RENDER_MODE);
-    renderer_clear_background(RENDER_MODE, 10, 10, 10, 255);
+    renderer_begin_drawing(&app->renderer);
+    renderer_clear_background(&app->renderer, 10, 10, 10, 255);
 
     if (app->show_fps)
     {
-        renderer_draw_fps(RENDER_MODE, 10, 10);
+        renderer_draw_fps(&app->renderer, 10, 10);
     }
 
 
@@ -978,7 +967,7 @@ void GameLoop(void* a)
         break;
     }
 
-    renderer_end_drawing(RENDER_MODE);
+    renderer_end_drawing(&app->renderer);
 }
 
 

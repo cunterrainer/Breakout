@@ -3,6 +3,26 @@
 
 #include "raylib.h"
 
+#include "images.h"
+
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof(*a))
+
+void hardware_renderer_init(int width, int height)
+{
+    InitWindow(width, height, "Breakout");
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
+    SetExitKey(KEY_NULL);
+
+    Image icon = LoadImageFromMemory(".png", sg_Icon_image, ARRAY_SIZE(sg_Icon_image));
+    SetWindowIcon(icon);
+    UnloadImage(icon);
+}
+
+inline void hardware_renderer_shutdown()
+{
+    TerminateWindow();
+}
+
 inline void hardware_renderer_begin_drawing()
 {
     BeginDrawing();
