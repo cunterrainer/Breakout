@@ -44,7 +44,26 @@ void software_renderer_end_drawing()
 {
     UpdateTexture(g_SoftwareRendererTexture, g_SoftwareRendererFramebuffer);
     DrawTexture(g_SoftwareRendererTexture, 0, 0, WHITE);
+    DrawFPS(10, 10);
     EndDrawing();
+}
+
+
+inline int software_renderer_abs(int x)
+{
+    return x < 0 ? -x : x;
+}
+
+
+inline void software_renderer_put_pixel(int x, int y, Color color)
+{
+    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
+
+    int index = (y * g_Width + x) * 4;
+    g_SoftwareRendererFramebuffer[index + 0] = color.r;
+    g_SoftwareRendererFramebuffer[index + 1] = color.g;
+    g_SoftwareRendererFramebuffer[index + 2] = color.b;
+    g_SoftwareRendererFramebuffer[index + 3] = color.a;
 }
 
 
@@ -121,8 +140,9 @@ static void swap_vec2(Vector2 *a, Vector2 *b)
     *b = temp;
 }
 
+
 // Helper: blend a pixel with alpha blending into the framebuffer
-void PutPixelAlpha(int x, int y, Color color)
+void software_renderer_put_pixel_alpha(int x, int y, Color color)
 {
     if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
 
@@ -163,7 +183,7 @@ static void draw_horizontal_line(int y, int x0, int x1, Color color)
 
     for (int x = x0; x < x1; x++)
     {
-        PutPixelAlpha(x, y, color);
+        software_renderer_put_pixel_alpha(x, y, color);
     }
 }
 
@@ -230,12 +250,6 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
 }
 
 
-int software_renderer_abs(int x)
-{
-    return x < 0 ? -x : x;
-}
-
-
 void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
 {
     int x0 = (int)v1.x;
@@ -253,7 +267,7 @@ void software_renderer_draw_line_v(Vector2 v1, Vector2 v2, Color color)
 
     while (true)
     {
-        PutPixelAlpha(x0, y0, color);  // Use your alpha blending pixel function
+        software_renderer_put_pixel(x0, y0, color);  // Use your alpha blending pixel function
 
         if (x0 == x1 && y0 == y1) break;
 
@@ -302,14 +316,14 @@ void software_renderer_draw_circle_lines_v(Vector2 center, float radius, Color c
 
     while (x >= y)
     {
-        PutPixelAlpha(cx + x, cy + y, color);
-        PutPixelAlpha(cx + y, cy + x, color);
-        PutPixelAlpha(cx - y, cy + x, color);
-        PutPixelAlpha(cx - x, cy + y, color);
-        PutPixelAlpha(cx - x, cy - y, color);
-        PutPixelAlpha(cx - y, cy - x, color);
-        PutPixelAlpha(cx + y, cy - x, color);
-        PutPixelAlpha(cx + x, cy - y, color);
+        software_renderer_put_pixel(cx + x, cy + y, color);
+        software_renderer_put_pixel(cx + y, cy + x, color);
+        software_renderer_put_pixel(cx - y, cy + x, color);
+        software_renderer_put_pixel(cx - x, cy + y, color);
+        software_renderer_put_pixel(cx - x, cy - y, color);
+        software_renderer_put_pixel(cx - y, cy - x, color);
+        software_renderer_put_pixel(cx + y, cy - x, color);
+        software_renderer_put_pixel(cx + x, cy - y, color);
 
         y += 1;
         if (err <= 0)
