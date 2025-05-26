@@ -16,6 +16,12 @@ void renderer_init()
     software_renderer_init();
 }
 
+void renderer_shutdown()
+{
+    // hardware renderer doesn't need additional shutdown
+    software_renderer_shutdown();
+}
+
 void renderer_begin_drawing(enum RenderMode mode)
 {
     if (mode == Hardware)

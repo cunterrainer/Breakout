@@ -777,12 +777,15 @@ struct Application app_start()
     app_load_audio(&app);
     app.volume_on = load_image(sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
     app.volume_off = load_image(sg_Volume_off_image, ARRAY_SIZE(sg_Volume_off_image));
+
+    renderer_init();
     return app;
 }
 
 
 void app_shutdown(const struct Application* app)
 {
+    renderer_shutdown();
     UnloadTexture(app->volume_on);
     UnloadTexture(app->volume_off);
     UnloadSound(app->sound_objects.success.sound);
@@ -975,8 +978,6 @@ void GameLoop(void* a)
 int main()
 {
     struct Application app = app_start();
-
-    renderer_init();
     
 #ifdef SYSTEM_WEB
     emscripten_set_main_loop_arg(GameLoop, &app, 0, 1);

@@ -30,6 +30,14 @@ void software_renderer_init() // TODO: CLEANUP
 }
 
 
+void software_renderer_shutdown()
+{
+    UnloadTexture(g_SoftwareRendererTexture);   // Free GPU texture
+    UnloadImage(g_FontImage);                   // Free CPU image copy
+    UnloadImageColors(g_FontPixels);
+}
+
+
 void software_renderer_begin_drawing()
 {
     BeginDrawing();
@@ -156,11 +164,16 @@ void software_renderer_draw_rectangle_rec(Rectangle rec, Color color)
 
 void software_renderer_draw_fps(int x, int y)
 {
+    Color color = LIME;                         // Good FPS
     int fps = GetFPS();
+
+    if ((fps < 30) && (fps >= 15)) color = ORANGE;  // Warning FPS
+    else if (fps < 15) color = RED;             // Low FPS
+
     char fpsText[16];
     snprintf(fpsText, sizeof(fpsText), "FPS: %d", fps);
 
-    software_renderer_draw_text(fpsText, x, y, 20, (Color){ 30, 149, 81, 255 });
+    software_renderer_draw_text(fpsText, x, y, 20, color);
 }
 
 
