@@ -1,8 +1,6 @@
 #ifndef SOFTWARE_RENDERER_H
 #define SOFTWARE_RENDERER_H
 
-#include "string.h"
-
 #include "raylib.h"
 
 static int g_Width = 1200;
@@ -13,7 +11,7 @@ static Font g_Font;
 static Image g_FontImage;
 static Color* g_FontPixels;
 
-void software_renderer_init() // TODO: CLEANUP
+void software_renderer_init()
 {
     Image image = {
         .data = g_SoftwareRendererFramebuffer,
