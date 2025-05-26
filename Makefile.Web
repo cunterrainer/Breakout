@@ -81,7 +81,7 @@ all:
 	$(SILENT) mv $(RAYLIB_SRC)/rtextures.o $(RAYLIB_OBJ_DIR)/rtextures.o
 	$(SILENT) mv $(RAYLIB_SRC)/utils.o $(RAYLIB_OBJ_DIR)/utils.o
 	$(SILENT) $(CC) -o $(BREAKOUT_OBJ_DIR)/main.o -c Breakout/src/main.c $(CC_FLAGS) -I$(RAYLIB_SRC)
-	$(SILENT) $(CC) -o $(BREAKOUT_TARGET) $(CXX_FLAGS) $(LD_FLAGS) $(BREAKOUT_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3
+	$(SILENT) $(CC) -o $(BREAKOUT_TARGET) $(CXX_FLAGS) $(LD_FLAGS) $(BREAKOUT_OBJ_DIR)/main.o $(RAYLIB_TARGET) -s USE_GLFW=3 -sEXPORTED_RUNTIME_METHODS=['HEAPF32']
 
 
 clean:
