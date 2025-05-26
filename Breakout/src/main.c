@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 #include "raylib.h"
@@ -6,6 +6,7 @@
 #include "sounds.h"
 #include "images.h"
 #include "winmain.h"
+#include "renderer.h"
 
 #ifdef SYSTEM_WEB
     #include <emscripten/emscripten.h>
@@ -16,6 +17,8 @@
 #define NUM_BRICKS     BRICKS_HOR * BRICKS_VER
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
+
+#define RENDER_MODE Software
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -337,7 +340,12 @@ struct GameObjects game_objects_init(int window_width, int window_height, int pa
     struct GameObjects objects;
     objects.score = 0;
     objects.paddle = (Rectangle) { (window_width - paddle_width) / 2.f, window_height - 60, paddle_width, paddle_height };
-    objects.ball = (struct Ball){ { objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 }, 15.f, ball_speed, { 1.4f, -1 }, { 0, 0 } };
+    
+    objects.ball.center = (Vector2){ objects.paddle.x + paddle_width / 2.f, objects.paddle.y - 20 };
+    objects.ball.radius = 15.f;
+    objects.ball.speed = ball_speed;
+    objects.ball.direction = (Vector2){ 1.4f, -1 };
+    objects.ball.prev_direction = (struct Vector2){ 0, 0 };
     objects.ball.tail.p1 = (Vector2) { objects.ball.center.x - 7.f, objects.paddle.y };
     objects.ball.tail.p2 = (Vector2){ objects.ball.center.x + 7.f, objects.paddle.y };
     objects.ball.tail.p3 = (Vector2) { objects.paddle.x + paddle_width / 2.f, objects.paddle.y };
@@ -480,7 +488,7 @@ void draw_triangle(Vector2 p1, Vector2 p2, Vector2 p3, Color color)
         third = max_vector_x(p1, p2);
     }
 
-    DrawTriangle(first, second, third, color);
+    renderer_draw_triangle(RENDER_MODE, first, second, third, color);
 }
 
 
@@ -490,11 +498,11 @@ void game_render(const struct GameObjects* game_objects, Vector2 ball_p1, Vector
     draw_triangle(ball_p1, ball_p2, game_objects->ball.tail.p2, tail_color);
     draw_triangle(game_objects->ball.tail.p1, game_objects->ball.tail.p2, game_objects->ball.tail.p3, tail_color);
 
-    DrawRectangleRec(game_objects->paddle, RED);
-    DrawCircleV(game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
+    renderer_draw_rectangle_rec(RENDER_MODE, game_objects->paddle, RED);
+    renderer_draw_circle_v(RENDER_MODE, game_objects->ball.center, game_objects->ball.radius, LIGHTGRAY);
 
     for (size_t i = 0; i < NUM_BRICKS; ++i) {
-        DrawRectangleRec(game_objects->bricks[i].rec, game_objects->bricks[i].col);
+        renderer_draw_rectangle_rec(RENDER_MODE, game_objects->bricks[i].rec, game_objects->bricks[i].col);
     }
 }
 
@@ -911,8 +919,8 @@ void GameLoop(void* a)
         on_app_resize(app, GetScreenWidth(), GetScreenHeight());
     }
 
-    BeginDrawing();
-    ClearBackground((Color) { 10, 10, 10, 255 });
+    renderer_begin_drawing(RENDER_MODE);
+    renderer_clear_background(RENDER_MODE, 10, 10, 10, 255);
 
     if (app->show_fps)
     {
@@ -960,7 +968,7 @@ void GameLoop(void* a)
         break;
     }
 
-    EndDrawing();
+    renderer_end_drawing(RENDER_MODE);
 }
 
 
@@ -968,6 +976,8 @@ int main()
 {
     struct Application app = app_start();
 
+    renderer_init();
+    
 #ifdef SYSTEM_WEB
     emscripten_set_main_loop_arg(GameLoop, &app, 0, 1);
 #else
@@ -977,4 +987,5 @@ int main()
     }
 #endif
     app_shutdown(&app);
+    return 0;
 }

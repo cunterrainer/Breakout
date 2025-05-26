@@ -14,3 +14,6 @@ Makefile
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters
+
+*.xcodeproj
+*.xcworkspace
