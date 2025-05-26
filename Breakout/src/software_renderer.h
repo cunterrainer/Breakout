@@ -80,62 +80,88 @@ inline void software_renderer_put_pixel(int x, int y, Color color)
 }
 
 
+// Helper: blend a pixel with alpha blending into the framebuffer
+void software_renderer_put_pixel_alpha(int x, int y, Color color)
+{
+    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
+
+    int index = (y * g_Width + x) * 4;
+
+    unsigned char dstR = g_SoftwareRendererFramebuffer[index + 0];
+    unsigned char dstG = g_SoftwareRendererFramebuffer[index + 1];
+    unsigned char dstB = g_SoftwareRendererFramebuffer[index + 2];
+    unsigned char dstA = g_SoftwareRendererFramebuffer[index + 3];
+
+    float srcAlpha = color.a / 255.0f;
+    float invAlpha = 1.0f - srcAlpha;
+
+    unsigned char outR = (unsigned char)(color.r * srcAlpha + dstR * invAlpha);
+    unsigned char outG = (unsigned char)(color.g * srcAlpha + dstG * invAlpha);
+    unsigned char outB = (unsigned char)(color.b * srcAlpha + dstB * invAlpha);
+    unsigned char outA = (unsigned char)(color.a * srcAlpha + dstA * invAlpha);
+
+    g_SoftwareRendererFramebuffer[index + 0] = outR;
+    g_SoftwareRendererFramebuffer[index + 1] = outG;
+    g_SoftwareRendererFramebuffer[index + 2] = outB;
+    g_SoftwareRendererFramebuffer[index + 3] = outA;
+}
+
+
 void software_renderer_draw_text(const char* text, int x, int y, int fontSize, Color color)
 {
     int cursorX = x;
     const float scale = (float)fontSize / (float)g_Font.baseSize;
+
     for (int i = 0; text[i] != '\0'; ++i)
     {
-        const char c = text[i];
-        const int codepoint = (unsigned char)c;
-
-        // Find glyph index
+        const unsigned char c = text[i];
         int glyphIndex = -1;
-        for (int g = 0; g < g_Font.glyphCount; g++) {
-            if (g_Font.glyphs[g].value == codepoint) {
+
+        for (int g = 0; g < g_Font.glyphCount; g++)
+        {
+            if (g_Font.glyphs[g].value == c)
+            {
                 glyphIndex = g;
                 break;
             }
         }
-
-        if (glyphIndex == -1) continue; // Character not found
+        if (glyphIndex == -1) continue;
 
         const Rectangle glyphRec = g_Font.recs[glyphIndex];
         const GlyphInfo glyph = g_Font.glyphs[glyphIndex];
 
-        // Draw glyph bitmap from font image
+        // Loop over glyph pixels
         for (int py = 0; py < (int)glyphRec.height; py++)
         {
             for (int px = 0; px < (int)glyphRec.width; px++)
             {
                 const int gx = (int)(glyphRec.x + px);
                 const int gy = (int)(glyphRec.y + py);
-
                 const Color texel = g_FontPixels[gy * g_FontImage.width + gx];
 
-                if (texel.a > 0)
+                if (texel.a == 0) continue;
+
+                // Scaled target position
+                const int baseX = cursorX + (int)((px + glyph.offsetX) * scale);
+                const int baseY = y + (int)((py + glyph.offsetY) * scale);
+
+                // Scale the glyph pixel to a block of scale x scale
+                int blockSize = (int)(scale + 0.5f);
+                if (blockSize < 1) blockSize = 1;
+
+                for (int dy = 0; dy < blockSize; dy++)
                 {
-                    // Scale output
-                    for (int sy = 0; sy < scale; sy++)
+                    for (int dx = 0; dx < blockSize; dx++)
                     {
-                        for (int sx = 0; sx < scale; sx++)
-                        {
-                            const int dstX = cursorX + (int)((px + glyph.offsetX) * scale) + sx;
-                            const int dstY = y + (int)((py + glyph.offsetY) * scale) + sy;
-                            software_renderer_put_pixel(dstX, dstY, color);
-                        }
+                        software_renderer_put_pixel(baseX + dx, baseY + dy, color);
                     }
                 }
             }
         }
 
-        int advance = glyph.advanceX;
-        if (advance == 0)
-        {
-            advance = (int)g_Font.recs[glyphIndex].width + g_Font.glyphPadding;
-            advance += 1; // <- add a bit of extra spacing manually
-        }
-        cursorX += advance * scale;
+        // Advance the cursor
+        const float advance = (float)(glyph.advanceX ? glyph.advanceX : glyphRec.width + g_Font.glyphPadding + 1);
+        cursorX += (int)(advance * scale + 0.5f);
     }
 }
 
@@ -250,33 +276,6 @@ static void swap_vec2(Vector2 *a, Vector2 *b)
     Vector2 temp = *a;
     *a = *b;
     *b = temp;
-}
-
-
-// Helper: blend a pixel with alpha blending into the framebuffer
-void software_renderer_put_pixel_alpha(int x, int y, Color color)
-{
-    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
-
-    int index = (y * g_Width + x) * 4;
-
-    unsigned char dstR = g_SoftwareRendererFramebuffer[index + 0];
-    unsigned char dstG = g_SoftwareRendererFramebuffer[index + 1];
-    unsigned char dstB = g_SoftwareRendererFramebuffer[index + 2];
-    unsigned char dstA = g_SoftwareRendererFramebuffer[index + 3];
-
-    float srcAlpha = color.a / 255.0f;
-    float invAlpha = 1.0f - srcAlpha;
-
-    unsigned char outR = (unsigned char)(color.r * srcAlpha + dstR * invAlpha);
-    unsigned char outG = (unsigned char)(color.g * srcAlpha + dstG * invAlpha);
-    unsigned char outB = (unsigned char)(color.b * srcAlpha + dstB * invAlpha);
-    unsigned char outA = (unsigned char)(color.a * srcAlpha + dstA * invAlpha);
-
-    g_SoftwareRendererFramebuffer[index + 0] = outR;
-    g_SoftwareRendererFramebuffer[index + 1] = outG;
-    g_SoftwareRendererFramebuffer[index + 2] = outB;
-    g_SoftwareRendererFramebuffer[index + 3] = outA;
 }
 
 
