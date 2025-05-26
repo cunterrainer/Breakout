@@ -114,12 +114,38 @@ void software_renderer_draw_circle_v(Vector2 center, float radius, Color color)
 
 
 // Helper function to swap two Vector2s
-static void swap_vec2(Vector2 *a, Vector2 *b) {
+static void swap_vec2(Vector2 *a, Vector2 *b)
+{
     Vector2 temp = *a;
     *a = *b;
     *b = temp;
 }
 
+// Helper: blend a pixel with alpha blending into the framebuffer
+void PutPixelAlpha(int x, int y, Color color)
+{
+    if (x < 0 || x >= g_Width || y < 0 || y >= g_Height) return;
+
+    int index = (y * g_Width + x) * 4;
+
+    unsigned char dstR = g_SoftwareRendererFramebuffer[index + 0];
+    unsigned char dstG = g_SoftwareRendererFramebuffer[index + 1];
+    unsigned char dstB = g_SoftwareRendererFramebuffer[index + 2];
+    unsigned char dstA = g_SoftwareRendererFramebuffer[index + 3];
+
+    float srcAlpha = color.a / 255.0f;
+    float invAlpha = 1.0f - srcAlpha;
+
+    unsigned char outR = (unsigned char)(color.r * srcAlpha + dstR * invAlpha);
+    unsigned char outG = (unsigned char)(color.g * srcAlpha + dstG * invAlpha);
+    unsigned char outB = (unsigned char)(color.b * srcAlpha + dstB * invAlpha);
+    unsigned char outA = (unsigned char)(color.a * srcAlpha + dstA * invAlpha);
+
+    g_SoftwareRendererFramebuffer[index + 0] = outR;
+    g_SoftwareRendererFramebuffer[index + 1] = outG;
+    g_SoftwareRendererFramebuffer[index + 2] = outB;
+    g_SoftwareRendererFramebuffer[index + 3] = outA;
+}
 
 // Helper function to draw a horizontal line between two x values at a given y
 static void draw_horizontal_line(int y, int x0, int x1, Color color)
@@ -135,12 +161,9 @@ static void draw_horizontal_line(int y, int x0, int x1, Color color)
     if (x0 < 0) x0 = 0;
     if (x1 > g_Width) x1 = g_Width;
 
-    for (int x = x0; x < x1; x++) {
-        int index = (y * g_Width + x) * 4;
-        g_SoftwareRendererFramebuffer[index + 0] = color.r;
-        g_SoftwareRendererFramebuffer[index + 1] = color.g;
-        g_SoftwareRendererFramebuffer[index + 2] = color.b;
-        g_SoftwareRendererFramebuffer[index + 3] = color.a;
+    for (int x = x0; x < x1; x++)
+    {
+        PutPixelAlpha(x, y, color);
     }
 }
 
@@ -156,7 +179,8 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
     // Convert to integers for pixel rasterization
 
     // Handle flat-bottom triangle
-    if ((int)v1.y == (int)v0.y) {
+    if ((int)v1.y == (int)v0.y)
+    {
         // Sort by x
         if (v0.x > v1.x) swap_vec2(&v0, &v1);
 
@@ -173,7 +197,8 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
         }
     }
     // Handle flat-top triangle
-    else if ((int)v1.y == (int)v2.y) {
+    else if ((int)v1.y == (int)v2.y)
+    {
         // Sort by x
         if (v1.x > v2.x) swap_vec2(&v1, &v2);
 
@@ -190,7 +215,8 @@ void software_renderer_draw_triangle(Vector2 v0, Vector2 v1, Vector2 v2, Color c
         }
     }
     // General case: split the triangle into two flat ones
-    else {
+    else
+    {
         // Find the split point
         float t = (v1.y - v0.y) / (v2.y - v0.y);
         Vector2 vi = {
