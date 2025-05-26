@@ -37,7 +37,7 @@ struct SoftwareRenderer software_renderer_init(int width, int height)
 }
 
 
-inline void software_renderer_shutdown(struct SoftwareRenderer renderer)
+static inline void software_renderer_shutdown(struct SoftwareRenderer renderer)
 {
     UnloadTexture(g_SoftwareRendererTexture); // Free GPU texture
     UnloadImage(renderer.font_image);         // Free CPU image copy
@@ -45,7 +45,7 @@ inline void software_renderer_shutdown(struct SoftwareRenderer renderer)
 }
 
 
-inline void software_renderer_begin_drawing()
+static inline void software_renderer_begin_drawing()
 {
     BeginDrawing();
 }
@@ -63,7 +63,7 @@ void software_renderer_clear_background(const struct SoftwareRenderer* renderer,
 }
 
 
-inline void software_renderer_end_drawing()
+static inline void software_renderer_end_drawing()
 {
     UpdateTexture(g_SoftwareRendererTexture, g_SoftwareRendererFramebuffer);
     DrawTexture(g_SoftwareRendererTexture, 0, 0, WHITE);
@@ -71,13 +71,13 @@ inline void software_renderer_end_drawing()
 }
 
 
-inline int software_renderer_abs(int x)
+static inline int software_renderer_abs(int x)
 {
     return x < 0 ? -x : x;
 }
 
 
-inline void software_renderer_put_pixel(const struct SoftwareRenderer* renderer, int x, int y, Color color)
+static inline void software_renderer_put_pixel(const struct SoftwareRenderer* renderer, int x, int y, Color color)
 {
     if (x < 0 || x >= renderer->width || y < 0 || y >= renderer->height) return;
 
@@ -280,7 +280,7 @@ void software_renderer_draw_circle_v(const struct SoftwareRenderer* renderer, Ve
 
 
 // Helper function to swap two Vector2s
-inline void software_renderer_swap_vec2(Vector2 *a, Vector2 *b)
+static inline void software_renderer_swap_vec2(Vector2 *a, Vector2 *b)
 {
     const Vector2 temp = *a;
     *a = *b;
@@ -337,7 +337,7 @@ void software_renderer_draw_texture_ex(const struct SoftwareRenderer* renderer, 
 
 
 // Helper function to draw a horizontal line between two x values at a given y
-inline void software_renderer_draw_horizontal_line(const struct SoftwareRenderer* renderer, int y, int x0, int x1, Color color)
+static inline void software_renderer_draw_horizontal_line(const struct SoftwareRenderer* renderer, int y, int x0, int x1, Color color)
 {
     if (y < 0 || y >= renderer->height) return;
 

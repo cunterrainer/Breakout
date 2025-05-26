@@ -123,13 +123,14 @@ struct Application
 };
 
 
-inline float max_3(float a, float b, float c)
-{
-    return a > b ? (a > c ? a : c) : (b > c ? b : c);
-}
+// not needed atm
+//static inline float max_3(float a, float b, float c)
+//{
+//    return a > b ? (a > c ? a : c) : (b > c ? b : c);
+//}
 
 
-inline float min_3(float a, float b, float c)
+static inline float min_3(float a, float b, float c)
 {
     return a < b ? (a < c ? a : c) : (b < c ? b : c);
 }
@@ -238,7 +239,7 @@ bool ball_bricks_collision(struct Ball* ball, struct Brick* bricks)
 }
 
 
-inline void ball_move_tail_tip(struct Ball* ball, float speed, float dt)
+static inline void ball_move_tail_tip(struct Ball* ball, float speed, float dt)
 {
     ball->tail.p3.x += ball->prev_direction.x * dt * speed;
     ball->tail.p3.y += ball->prev_direction.y * dt * speed;
@@ -418,25 +419,25 @@ enum State on_game_update(struct Application* app, float dt)
 }
 
 
-inline Vector2 min_vector_x(Vector2 v1, Vector2 v2)
+static inline Vector2 min_vector_x(Vector2 v1, Vector2 v2)
 {
     return v1.x < v2.x ? v1 : v2;
 }
 
 
-inline Vector2 max_vector_x(Vector2 v1, Vector2 v2)
+static inline Vector2 max_vector_x(Vector2 v1, Vector2 v2)
 {
     return v1.x > v2.x ? v1 : v2;
 }
 
 
-inline Vector2 min_vector_y(Vector2 v1, Vector2 v2)
+static inline Vector2 min_vector_y(Vector2 v1, Vector2 v2)
 {
     return v1.y < v2.y ? v1 : v2;
 }
 
 
-inline Vector2 max_vector_y(Vector2 v1, Vector2 v2)
+static inline Vector2 max_vector_y(Vector2 v1, Vector2 v2)
 {
     return v1.y > v2.y ? v1 : v2;
 }
@@ -665,7 +666,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
 }
 
 
-inline float app_transform(float old_value, float old_dimension, float new_dimension)
+static inline float app_transform(float old_value, float old_dimension, float new_dimension)
 {
     return old_value / old_dimension * new_dimension;
 }
