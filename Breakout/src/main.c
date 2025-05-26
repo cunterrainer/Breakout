@@ -18,7 +18,7 @@
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
 
-#define RENDER_MODE Hardware
+#define RENDER_MODE Software
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -579,8 +579,8 @@ enum State menu_show_controlls(const struct Application* app)
     if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         return Break;
 
-    DrawRectangle(app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
-    DrawRectangle(0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
+    renderer_draw_rectangle(RENDER_MODE, app->width / 2.f - 25, 0, 50, 55, (Color) { 10, 10, 10, 255 }); // Draw over the score
+    renderer_draw_rectangle(RENDER_MODE, 0, BRICK_Y_OFFSET, app->width, app->height - BRICK_Y_OFFSET, (Color) { 10, 10, 10, 255 });
 
     const int font_size = (app->height - 10) / 33;
     menu_render_controll(font_size, "Keyboard", WHITE, false);
@@ -924,7 +924,7 @@ void GameLoop(void* a)
 
     if (app->show_fps)
     {
-        DrawFPS(10, 10);
+        renderer_draw_fps(RENDER_MODE, 10, 10);
     }
 
 

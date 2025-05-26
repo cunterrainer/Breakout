@@ -52,7 +52,6 @@ void software_renderer_end_drawing()
 {
     UpdateTexture(g_SoftwareRendererTexture, g_SoftwareRendererFramebuffer);
     DrawTexture(g_SoftwareRendererTexture, 0, 0, WHITE);
-    DrawFPS(10, 10);
     EndDrawing();
 }
 
@@ -150,6 +149,40 @@ void software_renderer_draw_rectangle_rec(Rectangle rec, Color color)
             g_SoftwareRendererFramebuffer[index + 1] = color.g;
             g_SoftwareRendererFramebuffer[index + 2] = color.b;
             g_SoftwareRendererFramebuffer[index + 3] = color.a;
+        }
+    }
+}
+
+
+void software_renderer_draw_fps(int x, int y)
+{
+    int fps = GetFPS();
+    char fpsText[16];
+    snprintf(fpsText, sizeof(fpsText), "FPS: %d", fps);
+
+    software_renderer_draw_text(fpsText, x, y, 20, (Color){ 30, 149, 81, 255 });
+}
+
+
+void software_renderer_draw_rectangle(int x, int y, int width, int height, Color color)
+{
+    for (int row = 0; row < height; ++row)
+    {
+        for (int col = 0; col < width; ++col)
+        {
+            int px = x + col;
+            int py = y + row;
+
+            // Bounds check
+            if (px >= 0 && px < g_Width && py >= 0 && py < g_Height)
+            {
+                int index = (py * g_Width + px) * 4; // 4 bytes per pixel (RGBA)
+
+                g_SoftwareRendererFramebuffer[index + 0] = color.r;
+                g_SoftwareRendererFramebuffer[index + 1] = color.g;
+                g_SoftwareRendererFramebuffer[index + 2] = color.b;
+                g_SoftwareRendererFramebuffer[index + 3] = 255; // Full opacity
+            }
         }
     }
 }

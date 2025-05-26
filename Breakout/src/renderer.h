@@ -96,4 +96,19 @@ void renderer_draw_text(enum RenderMode mode, const char* text, int posX, int po
         software_renderer_draw_text(text, posX, posY, fontSize, color);
 }
 
+void renderer_draw_rectangle(enum RenderMode mode, int x, int y, int width, int height, Color color)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_rectangle(x, y, width, height, color);
+    else
+        software_renderer_draw_rectangle(x, y, width, height, color);
+}
+
+void renderer_draw_fps(enum RenderMode mode, int x, int y)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_fps(x, y);
+    else
+        software_renderer_draw_fps(x, y);
+}
 #endif // RENDERER_H

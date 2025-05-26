@@ -53,4 +53,14 @@ void hardware_renderer_draw_text(const char* text, int posX, int posY, int fontS
     DrawText(text, posX, posY, fontSize, color);
 }
 
+void hardware_renderer_draw_rectangle(int x, int y, int width, int height, Color color)
+{
+    DrawRectangle(x, y, width, height, color);
+}
+
+void hardware_renderer_draw_fps(int x, int y)
+{
+    DrawFPS(x, y);
+}
+
 #endif // HARDWARE_RENDERER_H
