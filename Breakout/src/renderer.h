@@ -10,19 +10,19 @@ enum RenderMode
     Hardware
 };
 
-void renderer_init()
+inline void renderer_init()
 {
     // hardware renderer doesn't need additional setup
     software_renderer_init();
 }
 
-void renderer_shutdown()
+inline void renderer_shutdown()
 {
     // hardware renderer doesn't need additional shutdown
     software_renderer_shutdown();
 }
 
-void renderer_begin_drawing(enum RenderMode mode)
+inline void renderer_begin_drawing(enum RenderMode mode)
 {
     if (mode == Hardware)
         hardware_renderer_begin_drawing();
@@ -30,7 +30,7 @@ void renderer_begin_drawing(enum RenderMode mode)
         software_renderer_begin_drawing();
 }
 
-void renderer_clear_background(enum RenderMode mode, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+inline void renderer_clear_background(enum RenderMode mode, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
     if (mode == Hardware)
         hardware_renderer_clear_background(r, g, b, a);
@@ -38,7 +38,7 @@ void renderer_clear_background(enum RenderMode mode, unsigned char r, unsigned c
         software_renderer_clear_background(r, g, b, a);
 }
 
-void renderer_end_drawing(enum RenderMode mode)
+inline void renderer_end_drawing(enum RenderMode mode)
 {
     if (mode == Hardware)
         hardware_renderer_end_drawing();
@@ -46,7 +46,7 @@ void renderer_end_drawing(enum RenderMode mode)
         software_renderer_end_drawing();
 }
 
-void renderer_draw_rectangle_rec(enum RenderMode mode, Rectangle rec, Color color)
+inline void renderer_draw_rectangle_rec(enum RenderMode mode, Rectangle rec, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_rectangle_rec(rec, color);
@@ -54,7 +54,7 @@ void renderer_draw_rectangle_rec(enum RenderMode mode, Rectangle rec, Color colo
         software_renderer_draw_rectangle_rec(rec, color);
 }
 
-void renderer_draw_circle_v(enum RenderMode mode, Vector2 center, float radius, Color color)
+inline void renderer_draw_circle_v(enum RenderMode mode, Vector2 center, float radius, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_circle_v(center, radius, color);
@@ -62,7 +62,7 @@ void renderer_draw_circle_v(enum RenderMode mode, Vector2 center, float radius, 
         software_renderer_draw_circle_v(center, radius, color);
 }
 
-void renderer_draw_triangle(enum RenderMode mode, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
+inline void renderer_draw_triangle(enum RenderMode mode, Vector2 v1, Vector2 v2, Vector2 v3, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_triangle(v1, v2, v3, color);
@@ -70,7 +70,7 @@ void renderer_draw_triangle(enum RenderMode mode, Vector2 v1, Vector2 v2, Vector
         software_renderer_draw_triangle(v1, v2, v3, color);
 }
 
-void renderer_draw_line_v(enum RenderMode mode, Vector2 v1, Vector2 v2, Color color)
+inline void renderer_draw_line_v(enum RenderMode mode, Vector2 v1, Vector2 v2, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_line_v(v1, v2, color);
@@ -78,7 +78,7 @@ void renderer_draw_line_v(enum RenderMode mode, Vector2 v1, Vector2 v2, Color co
         software_renderer_draw_line_v(v1, v2, color);
 }
 
-void renderer_draw_rectangle_lines_ex(enum RenderMode mode, Rectangle rec, float thickness, Color color)
+inline void renderer_draw_rectangle_lines_ex(enum RenderMode mode, Rectangle rec, float thickness, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_rectangle_lines_ex(rec, thickness, color);
@@ -86,7 +86,7 @@ void renderer_draw_rectangle_lines_ex(enum RenderMode mode, Rectangle rec, float
         software_renderer_draw_rectangle_lines_ex(rec, (int)thickness, color);
 }
 
-void renderer_draw_circle_lines_v(enum RenderMode mode, Vector2 center, float radius, Color color)
+inline void renderer_draw_circle_lines_v(enum RenderMode mode, Vector2 center, float radius, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_circle_lines_v(center, radius, color);
@@ -94,7 +94,7 @@ void renderer_draw_circle_lines_v(enum RenderMode mode, Vector2 center, float ra
         software_renderer_draw_circle_lines_v(center, radius, color);
 }
 
-void renderer_draw_text(enum RenderMode mode, const char* text, int posX, int posY, int fontSize, Color color)
+inline void renderer_draw_text(enum RenderMode mode, const char* text, int posX, int posY, int fontSize, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_text(text, posX, posY, fontSize, color);
@@ -102,7 +102,7 @@ void renderer_draw_text(enum RenderMode mode, const char* text, int posX, int po
         software_renderer_draw_text(text, posX, posY, fontSize, color);
 }
 
-void renderer_draw_rectangle(enum RenderMode mode, int x, int y, int width, int height, Color color)
+inline void renderer_draw_rectangle(enum RenderMode mode, int x, int y, int width, int height, Color color)
 {
     if (mode == Hardware)
         hardware_renderer_draw_rectangle(x, y, width, height, color);
@@ -110,7 +110,7 @@ void renderer_draw_rectangle(enum RenderMode mode, int x, int y, int width, int 
         software_renderer_draw_rectangle(x, y, width, height, color);
 }
 
-void renderer_draw_fps(enum RenderMode mode, int x, int y)
+inline void renderer_draw_fps(enum RenderMode mode, int x, int y)
 {
     if (mode == Hardware)
         hardware_renderer_draw_fps(x, y);
@@ -118,7 +118,7 @@ void renderer_draw_fps(enum RenderMode mode, int x, int y)
         software_renderer_draw_fps(x, y);
 }
 
-void renderer_draw_texture_ex(enum RenderMode mode, Texture2D texture, Image img, Vector2 pos, float rotation, float scale, Color tint)
+inline void renderer_draw_texture_ex(enum RenderMode mode, Texture2D texture, Image img, Vector2 pos, float rotation, float scale, Color tint)
 {
     if (mode == Hardware)
         hardware_renderer_draw_texture_ex(texture, pos, rotation, scale, tint);
