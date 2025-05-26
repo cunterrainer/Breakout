@@ -275,6 +275,56 @@ void software_renderer_put_pixel_alpha(int x, int y, Color color)
     g_SoftwareRendererFramebuffer[index + 3] = outA;
 }
 
+
+void software_renderer_draw_texture_ex(Image img, Vector2 pos, float scale, Color tint)
+{
+    Color* pixels = (Color*)img.data;
+
+    int scaledWidth = (int)(img.width * scale);
+    int scaledHeight = (int)(img.height * scale);
+
+    for (int y = 0; y < scaledHeight; ++y)
+    {
+        for (int x = 0; x < scaledWidth; ++x)
+        {
+            // Source image coordinates (nearest neighbor)
+            int srcX = (int)(x / scale);
+            int srcY = (int)(y / scale);
+
+            if (srcX < 0 || srcX >= img.width || srcY < 0 || srcY >= img.height)
+                continue;
+
+            Color texel = pixels[srcY * img.width + srcX];
+
+            if (texel.a < 50) // a little workaround because volume off isn't entirely transparent
+                continue; // Skip transparent pixels
+
+            // Apply tint
+            Color out = {
+                .r = (unsigned char)(texel.r * tint.r / 255),
+                .g = (unsigned char)(texel.g * tint.g / 255),
+                .b = (unsigned char)(texel.b * tint.b / 255),
+                .a = 255
+            };
+
+            int dstX = (int)pos.x + x;
+            int dstY = (int)pos.y + y;
+
+            // Bounds check
+            if (dstX >= 0 && dstX < g_Width && dstY >= 0 && dstY < g_Height)
+            {
+                int index = (dstY * g_Width + dstX) * 4;
+                g_SoftwareRendererFramebuffer[index + 0] = out.r;
+                g_SoftwareRendererFramebuffer[index + 1] = out.g;
+                g_SoftwareRendererFramebuffer[index + 2] = out.b;
+                g_SoftwareRendererFramebuffer[index + 3] = out.a;
+            }
+        }
+    }
+}
+
+
+
 // Helper function to draw a horizontal line between two x values at a given y
 static void draw_horizontal_line(int y, int x0, int x1, Color color)
 {

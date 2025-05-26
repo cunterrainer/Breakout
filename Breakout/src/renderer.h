@@ -117,4 +117,12 @@ void renderer_draw_fps(enum RenderMode mode, int x, int y)
     else
         software_renderer_draw_fps(x, y);
 }
+
+void renderer_draw_texture_ex(enum RenderMode mode, Texture2D texture, Image img, Vector2 pos, float rotation, float scale, Color tint)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_texture_ex(texture, pos, rotation, scale, tint);
+    else
+        software_renderer_draw_texture_ex(img, pos, scale, tint); // rotation not supported, doesn't matter for us rotation is always 0
+}
 #endif // RENDERER_H

@@ -63,4 +63,9 @@ void hardware_renderer_draw_fps(int x, int y)
     DrawFPS(x, y);
 }
 
+void hardware_renderer_draw_texture_ex(Texture2D texture, Vector2 pos, float rotation, float scale, Color tint)
+{
+    DrawTextureEx(texture, pos, rotation, scale, tint);
+}
+
 #endif // HARDWARE_RENDERER_H

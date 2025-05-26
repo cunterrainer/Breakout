@@ -18,7 +18,7 @@
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
 
-#define RENDER_MODE Software
+#define RENDER_MODE Hardware
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -119,6 +119,8 @@ struct Application
     bool limit_fps;
     Texture2D volume_on;
     Texture2D volume_off;
+    Image volume_on_img;
+    Image volume_off_img;
 };
 
 
@@ -630,7 +632,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
     const int x_pos = (app->width - text_length) / 2;
     const int y_pos = (app->height - app->font_size_menu) / 2;
 
-    DrawTextureEx(app->sound_objects.start.play ? app->volume_on : app->volume_off, (Vector2) { 20.f, 10 }, 0, 0.08f, WHITE);
+    renderer_draw_texture_ex(RENDER_MODE, app->sound_objects.start.play ? app->volume_on : app->volume_off, app->sound_objects.start.play ? app->volume_on_img : app->volume_off_img, (Vector2) { 20.f, 10 }, 0, 0.08f, WHITE);
 
     switch (app->state)
     {
@@ -741,15 +743,6 @@ void app_load_audio(struct Application* app)
 }
 
 
-Texture2D load_image(const unsigned char* data, int size)
-{
-    Image img = LoadImageFromMemory(".png", data, size);
-    Texture2D texture = LoadTextureFromImage(img);
-    UnloadImage(img);
-    return texture;
-}
-
-
 struct Application app_start()
 {
     struct Application app;
@@ -775,8 +768,10 @@ struct Application app_start()
     UnloadImage(icon);
 
     app_load_audio(&app);
-    app.volume_on = load_image(sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
-    app.volume_off = load_image(sg_Volume_off_image, ARRAY_SIZE(sg_Volume_off_image));
+    app.volume_on_img = LoadImageFromMemory(".png", sg_Volume_on_image, ARRAY_SIZE(sg_Volume_on_image));
+    app.volume_off_img = LoadImageFromMemory(".png", sg_Volume_off_image, ARRAY_SIZE(sg_Volume_off_image));
+    app.volume_on = LoadTextureFromImage(app.volume_on_img);
+    app.volume_off = LoadTextureFromImage(app.volume_off_img);
 
     renderer_init();
     return app;
@@ -786,6 +781,8 @@ struct Application app_start()
 void app_shutdown(const struct Application* app)
 {
     renderer_shutdown();
+    UnloadImage(app->volume_on_img);
+    UnloadImage(app->volume_off_img);
     UnloadTexture(app->volume_on);
     UnloadTexture(app->volume_off);
     UnloadSound(app->sound_objects.success.sound);
