@@ -82,11 +82,12 @@ inline void software_renderer_put_pixel(int x, int y, Color color)
 
 void software_renderer_draw_text(const char* text, int x, int y, int fontSize, Color color)
 {
-    int scale = fontSize / g_Font.baseSize;
     int cursorX = x;
-    for (int i = 0; text[i] != '\0'; ++i) {
-        char c = text[i];
-        int codepoint = (unsigned char)c;
+    const float scale = (float)fontSize / (float)g_Font.baseSize;
+    for (int i = 0; text[i] != '\0'; ++i)
+    {
+        const char c = text[i];
+        const int codepoint = (unsigned char)c;
 
         // Find glyph index
         int glyphIndex = -1;
@@ -99,23 +100,28 @@ void software_renderer_draw_text(const char* text, int x, int y, int fontSize, C
 
         if (glyphIndex == -1) continue; // Character not found
 
-        Rectangle glyphRec = g_Font.recs[glyphIndex];
-        GlyphInfo glyph = g_Font.glyphs[glyphIndex];
+        const Rectangle glyphRec = g_Font.recs[glyphIndex];
+        const GlyphInfo glyph = g_Font.glyphs[glyphIndex];
 
         // Draw glyph bitmap from font image
-        for (int py = 0; py < (int)glyphRec.height; py++) {
-            for (int px = 0; px < (int)glyphRec.width; px++) {
-                int gx = (int)(glyphRec.x + px);
-                int gy = (int)(glyphRec.y + py);
+        for (int py = 0; py < (int)glyphRec.height; py++)
+        {
+            for (int px = 0; px < (int)glyphRec.width; px++)
+            {
+                const int gx = (int)(glyphRec.x + px);
+                const int gy = (int)(glyphRec.y + py);
 
-                Color texel = g_FontPixels[gy * g_FontImage.width + gx];
+                const Color texel = g_FontPixels[gy * g_FontImage.width + gx];
 
-                if (texel.a > 0) {
+                if (texel.a > 0)
+                {
                     // Scale output
-                    for (int sy = 0; sy < scale; sy++) {
-                        for (int sx = 0; sx < scale; sx++) {
-                            int dstX = cursorX + (px + glyph.offsetX) * scale + sx;
-                            int dstY = y + (py + glyph.offsetY) * scale + sy;
+                    for (int sy = 0; sy < scale; sy++)
+                    {
+                        for (int sx = 0; sx < scale; sx++)
+                        {
+                            const int dstX = cursorX + (int)((px + glyph.offsetX) * scale) + sx;
+                            const int dstY = y + (int)((py + glyph.offsetY) * scale) + sy;
                             software_renderer_put_pixel(dstX, dstY, color);
                         }
                     }
