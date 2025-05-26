@@ -47,4 +47,10 @@ void hardware_renderer_draw_circle_lines_v(Vector2 center, float radius, Color c
 {
     DrawCircleLinesV(center, radius, color);
 }
+
+void hardware_renderer_draw_text(const char* text, int posX, int posY, int fontSize, Color color)
+{
+    DrawText(text, posX, posY, fontSize, color);
+}
+
 #endif // HARDWARE_RENDERER_H

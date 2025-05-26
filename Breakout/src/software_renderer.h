@@ -1,14 +1,19 @@
 #ifndef SOFTWARE_RENDERER_H
 #define SOFTWARE_RENDERER_H
 
+#include "string.h"
+
 #include "raylib.h"
 
 static int g_Width = 1200;
 static int g_Height = 750;
 static unsigned char g_SoftwareRendererFramebuffer[1200*750*4];
 static Texture2D g_SoftwareRendererTexture;
+static Font g_Font;
+static Image g_FontImage;
+static Color* g_FontPixels;
 
-void software_renderer_init()
+void software_renderer_init() // TODO: CLEANUP
 {
     Image image = {
         .data = g_SoftwareRendererFramebuffer,
@@ -19,6 +24,9 @@ void software_renderer_init()
     };
 
     g_SoftwareRendererTexture = LoadTextureFromImage(image);
+    g_Font = GetFontDefault();
+    g_FontImage = LoadImageFromTexture(g_Font.texture);
+    g_FontPixels = LoadImageColors(g_FontImage);
 }
 
 
@@ -64,6 +72,60 @@ inline void software_renderer_put_pixel(int x, int y, Color color)
     g_SoftwareRendererFramebuffer[index + 1] = color.g;
     g_SoftwareRendererFramebuffer[index + 2] = color.b;
     g_SoftwareRendererFramebuffer[index + 3] = color.a;
+}
+
+
+void software_renderer_draw_text(const char* text, int x, int y, int fontSize, Color color)
+{
+    int scale = fontSize / g_Font.baseSize;
+    int cursorX = x;
+    for (int i = 0; text[i] != '\0'; ++i) {
+        char c = text[i];
+        int codepoint = (unsigned char)c;
+
+        // Find glyph index
+        int glyphIndex = -1;
+        for (int g = 0; g < g_Font.glyphCount; g++) {
+            if (g_Font.glyphs[g].value == codepoint) {
+                glyphIndex = g;
+                break;
+            }
+        }
+
+        if (glyphIndex == -1) continue; // Character not found
+
+        Rectangle glyphRec = g_Font.recs[glyphIndex];
+        GlyphInfo glyph = g_Font.glyphs[glyphIndex];
+
+        // Draw glyph bitmap from font image
+        for (int py = 0; py < (int)glyphRec.height; py++) {
+            for (int px = 0; px < (int)glyphRec.width; px++) {
+                int gx = (int)(glyphRec.x + px);
+                int gy = (int)(glyphRec.y + py);
+
+                Color texel = g_FontPixels[gy * g_FontImage.width + gx];
+
+                if (texel.a > 0) {
+                    // Scale output
+                    for (int sy = 0; sy < scale; sy++) {
+                        for (int sx = 0; sx < scale; sx++) {
+                            int dstX = cursorX + (px + glyph.offsetX) * scale + sx;
+                            int dstY = y + (py + glyph.offsetY) * scale + sy;
+                            software_renderer_put_pixel(dstX, dstY, color);
+                        }
+                    }
+                }
+            }
+        }
+
+        int advance = glyph.advanceX;
+        if (advance == 0)
+        {
+            advance = (int)g_Font.recs[glyphIndex].width + g_Font.glyphPadding;
+            advance += 1; // <- add a bit of extra spacing manually
+        }
+        cursorX += advance * scale;
+    }
 }
 
 

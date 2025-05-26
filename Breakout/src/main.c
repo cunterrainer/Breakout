@@ -18,7 +18,7 @@
 #define BRICK_PADDING  5
 #define BRICK_Y_OFFSET 60
 
-#define RENDER_MODE Software
+#define RENDER_MODE Hardware
 
 #define MIN(a, b) (a < b ? a : b)
 #define MAX(a, b) (a > b ? a : b)
@@ -554,13 +554,13 @@ void on_game_render(const struct Application* app)
         game_render_xray(&app->game_objects, ball_p1, ball_p2, tail_color);
     }
 
-    DrawText(score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
+    renderer_draw_text(RENDER_MODE, score_str, score_x_pos, 10, score_font_size, GRAY); // otherwise ball will be rendered on top of the score
 
     if (app->game_settings.show_stats)
     {
         const char* ball_speed_str = TextFormat("W: %zu F: %zu %zu", app->wins, app->failes, (size_t)app->game_objects.ball.speed);
         const int speed_length = MeasureText(ball_speed_str, score_font_size);
-        DrawText(ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
+        renderer_draw_text(RENDER_MODE, ball_speed_str, app->width - speed_length - 10, 10, score_font_size, GRAY);
     }
 }
 
@@ -568,7 +568,7 @@ void on_game_render(const struct Application* app)
 void menu_render_controll(int font_size, const char* text, Color color, bool reset)
 {
     static int y_pos = 10;
-    DrawText(text, 10, y_pos, font_size, color);
+    renderer_draw_text(RENDER_MODE, text, 10, y_pos, font_size, color);
     y_pos += font_size;
     if (reset) y_pos = 10;
 }
@@ -636,7 +636,7 @@ enum State on_menu_update(const struct Application* app, const char* text)
     {
     case Menu:
     case Break:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
+        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, DARKGRAY);
         if (IsKeyPressed(KEY_A) || IsKeyPressed(KEY_D) || IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_SPACE) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_RIGHT) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_LEFT_FACE_LEFT) || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) > 0 || GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X) < 0 || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_MIDDLE_RIGHT))
         {
             play_sound(app->sound_objects.start);
@@ -644,10 +644,10 @@ enum State on_menu_update(const struct Application* app, const char* text)
         }
         return IsKeyPressed(KEY_R) || IsGamepadButtonPressed(0, GAMEPAD_BUTTON_RIGHT_FACE_UP) ? Reset : (IsKeyPressed(KEY_L) ? ResetAll : app->state);
     case Success:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, GOLD);
+        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, GOLD);
         break;
     case Failed:
-        DrawText(text, x_pos, y_pos, app->font_size_menu, RED);
+        renderer_draw_text(RENDER_MODE, text, x_pos, y_pos, app->font_size_menu, RED);
         break;
     default:
         break;

@@ -88,4 +88,12 @@ void renderer_draw_circle_lines_v(enum RenderMode mode, Vector2 center, float ra
         software_renderer_draw_circle_lines_v(center, radius, color);
 }
 
+void renderer_draw_text(enum RenderMode mode, const char* text, int posX, int posY, int fontSize, Color color)
+{
+    if (mode == Hardware)
+        hardware_renderer_draw_text(text, posX, posY, fontSize, color);
+    else
+        software_renderer_draw_text(text, posX, posY, fontSize, color);
+}
+
 #endif // RENDERER_H
